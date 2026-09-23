@@ -1,0 +1,224 @@
+{
+  "url": "",
+  "method": "GET",
+  "params": {
+    "action": "wbsearchentities",
+    "search": "astronomy",
+    "language": "en",
+    "format": "json"
+  },
+  "status_code": 200,
+  "response_headers": {
+    "date": "Wed, 23 Sep 2026 17:52:07 GMT",
+    "server": "mw-api-ext.eqiad.main-5d7c84d88d-tkfxd",
+    "x-content-type-options": "nosniff",
+    "x-search-id": "5wmv8nc49z046o2nq6l63m13i",
+    "content-security-policy": "default-src 'self'; script-src 'none'; object-src 'none'",
+    "x-frame-options": "DENY",
+    "content-disposition": "inline; filename=api-result.json",
+    "cache-control": "private, must-revalidate, max-age=0",
+    "content-type": "application/json; charset=utf-8",
+    "content-encoding": "gzip",
+    "age": "0",
+    "accept-ranges": "bytes",
+    "x-cache": "cp3073 miss, cp3073 pass",
+    "x-cache-status": "pass",
+    "strict-transport-security": "max-age=106384710; includeSubDomains; preload",
+    "report-to": "{ \"group\": \"wm_nel\", \"max_age\": 604800, \"endpoints\": [{ \"url\": \"https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error&schema_uri=/w3c/reportingapi/network_error/1.0.0\" }] }",
+    "nel": "{ \"report_to\": \"wm_nel\", \"max_age\": 604800, \"failure_fraction\": 0.05, \"success_fraction\": 0.0}",
+    "set-cookie": "WMF-Last-Access=23-Sep-2026;Path=/;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, WMF-Last-Access-Global=23-Sep-2026;Path=/;Domain=.wikidata.org;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, GeoIP=UA:53:Kremenchug:49.06:33.40:v4; Path=/; secure; Domain=.wikidata.org, NetworkProbeLimit=0.001;Path=/;Secure;SameSite=None;Max-Age=3600, WMF-Uniq=o3OEP5sxxLJzXLpswo2qZwPkAAAAAFvdKFpfnHhdQYiMaIo_sI02buhILH3uabkA;Domain=.wikidata.org;Path=/;HttpOnly;secure;SameSite=None;Expires=Thu, 23 Sep 2027 00:00:00 GMT",
+    "x-client-ip": "87.244.179.69",
+    "vary": "Accept-Encoding,X-Subdomain,Treat-as-Untrusted,X-Forwarded-Proto,Cookie,Authorization,User-Agent",
+    "content-length": "751",
+    "x-request-id": "2b010f31-99a8-41f2-b2a6-610963e20450",
+    "x-analytics": "",
+    "server-timing": "cache;desc=\"pass\", host;desc=\"cp3073\",co_id;desc=\"1049107039\""
+  },
+  "json": {
+    "searchinfo": {
+      "search": "astronomy"
+    },
+    "search": [
+      {
+        "id": "Q333",
+        "title": "Q333",
+        "pageid": 526,
+        "concepturi": "http://www.wikidata.org/entity/Q333",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q333",
+        "display": {
+          "label": {
+            "value": "astronomy",
+            "language": "en"
+          },
+          "description": {
+            "value": "natural science studying celestial objects and phenomena in the cosmos",
+            "language": "en"
+          }
+        },
+        "label": "astronomy",
+        "description": "natural science studying celestial objects and phenomena in the cosmos",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "astronomy"
+        }
+      },
+      {
+        "id": "Q752075",
+        "title": "Q752075",
+        "pageid": 707654,
+        "concepturi": "http://www.wikidata.org/entity/Q752075",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q752075",
+        "display": {
+          "label": {
+            "value": "Astronomy and Astrophysics",
+            "language": "en"
+          },
+          "description": {
+            "value": "scientific journal covering theoretical, observational, and instrumental astronomy and astrophysics",
+            "language": "en"
+          }
+        },
+        "label": "Astronomy and Astrophysics",
+        "description": "scientific journal covering theoretical, observational, and instrumental astronomy and astrophysics",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "Astronomy and Astrophysics"
+        }
+      },
+      {
+        "id": "Q123958410",
+        "title": "Q123958410",
+        "pageid": 118144617,
+        "concepturi": "http://www.wikidata.org/entity/Q123958410",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q123958410",
+        "display": {
+          "label": {
+            "value": "Astronomy",
+            "language": "en"
+          },
+          "description": {
+            "value": "vocal track by Conan Gray; 2021 studio recording",
+            "language": "en"
+          }
+        },
+        "label": "Astronomy",
+        "description": "vocal track by Conan Gray; 2021 studio recording",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "Astronomy"
+        }
+      },
+      {
+        "id": "Q3027134",
+        "title": "Q3027134",
+        "pageid": 2894017,
+        "concepturi": "http://www.wikidata.org/entity/Q3027134",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q3027134",
+        "display": {
+          "label": {
+            "value": "Astronomy Reports",
+            "language": "en"
+          },
+          "description": {
+            "value": "journal",
+            "language": "en"
+          }
+        },
+        "label": "Astronomy Reports",
+        "description": "journal",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "Astronomy Reports"
+        }
+      },
+      {
+        "id": "Q263028",
+        "title": "Q263028",
+        "pageid": 255061,
+        "concepturi": "http://www.wikidata.org/entity/Q263028",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q263028",
+        "display": {
+          "label": {
+            "value": "Astronomy Letters",
+            "language": "en"
+          },
+          "description": {
+            "value": "journal",
+            "language": "en"
+          }
+        },
+        "label": "Astronomy Letters",
+        "description": "journal",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "Astronomy Letters"
+        }
+      },
+      {
+        "id": "Q411",
+        "title": "Q411",
+        "pageid": 621,
+        "concepturi": "http://www.wikidata.org/entity/Q411",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q411",
+        "display": {
+          "label": {
+            "value": "astrobiology",
+            "language": "en"
+          },
+          "description": {
+            "value": "study of the formation of life on Earth and elsewhere on other planets in outer space",
+            "language": "en"
+          }
+        },
+        "label": "astrobiology",
+        "description": "study of the formation of life on Earth and elsewhere on other planets in outer space",
+        "match": {
+          "type": "alias",
+          "language": "en",
+          "text": "astronomy and biology"
+        },
+        "aliases": [
+          "astronomy and biology"
+        ]
+      },
+      {
+        "id": "Q3232273",
+        "title": "Q3232273",
+        "pageid": 3085513,
+        "concepturi": "http://www.wikidata.org/entity/Q3232273",
+        "repository": "wikidata",
+        "url": "//www.wikidata.org/wiki/Q3232273",
+        "display": {
+          "label": {
+            "value": "Astronomy",
+            "language": "en"
+          },
+          "description": {
+            "value": "American magazine",
+            "language": "en"
+          }
+        },
+        "label": "Astronomy",
+        "description": "American magazine",
+        "match": {
+          "type": "label",
+          "language": "en",
+          "text": "Astronomy"
+        }
+      }
+    ],
+    "search-continue": 7,
+    "success": 1
+  }
+}

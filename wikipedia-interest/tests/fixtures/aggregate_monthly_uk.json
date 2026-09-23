@@ -1,0 +1,87 @@
+{
+  "url": "",
+  "method": "GET",
+  "params": null,
+  "status_code": 200,
+  "response_headers": {
+    "cache-control": "s-maxage=14400, max-age=14400",
+    "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+    "content-type": "application/json; charset=utf-8",
+    "etag": "W/\"20-da39a3ee5e6b4b0d3255bfef95601890afd80709\"",
+    "date": "Wed, 23 Sep 2026 17:52:07 GMT",
+    "content-length": "794",
+    "server": "main-tls",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,HEAD",
+    "access-control-allow-headers": "accept, content-type, content-length, cache-control, accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding",
+    "access-control-expose-headers": "etag",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "referrer-policy": "origin-when-cross-origin",
+    "x-xss-protection": "1; mode=block",
+    "age": "0",
+    "accept-ranges": "bytes",
+    "x-cache": "cp3073 miss, cp3073 miss",
+    "x-cache-status": "miss",
+    "strict-transport-security": "max-age=106384710; includeSubDomains; preload",
+    "report-to": "{ \"group\": \"wm_nel\", \"max_age\": 604800, \"endpoints\": [{ \"url\": \"https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error&schema_uri=/w3c/reportingapi/network_error/1.0.0\" }] }",
+    "nel": "{ \"report_to\": \"wm_nel\", \"max_age\": 604800, \"failure_fraction\": 0.05, \"success_fraction\": 0.0}",
+    "set-cookie": "WMF-Last-Access=23-Sep-2026;Path=/;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, WMF-Last-Access-Global=23-Sep-2026;Path=/;Domain=.wikimedia.org;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, GeoIP=UA:53:Kremenchug:49.06:33.40:v4; Path=/; secure; Domain=.wikimedia.org, NetworkProbeLimit=0.001;Path=/;Secure;SameSite=None;Max-Age=3600",
+    "x-client-ip": "87.244.179.69",
+    "x-request-id": "14646b6d-38b6-4761-81bb-2184f30d7f02",
+    "x-analytics": "",
+    "server-timing": "cache;desc=\"miss\", host;desc=\"cp3073\",co_id;desc=\"2559522339\""
+  },
+  "json": {
+    "items": [
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024010100",
+        "views": 115282138
+      },
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024020100",
+        "views": 105744860
+      },
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024030100",
+        "views": 102268020
+      },
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024040100",
+        "views": 96763982
+      },
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024050100",
+        "views": 92905741
+      },
+      {
+        "project": "uk.wikipedia",
+        "access": "all-access",
+        "agent": "user",
+        "granularity": "monthly",
+        "timestamp": "2024060100",
+        "views": 63376161
+      }
+    ]
+  }
+}

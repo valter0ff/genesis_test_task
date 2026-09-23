@@ -1,0 +1,48 @@
+{
+  "url": "",
+  "method": "GET",
+  "params": {
+    "action": "query",
+    "titles": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0438\u044f",
+    "redirects": 1,
+    "format": "json"
+  },
+  "status_code": 200,
+  "response_headers": {
+    "date": "Wed, 23 Sep 2026 17:52:08 GMT",
+    "server": "mw-api-ext.eqiad.main-5d7c84d88d-vh8tl",
+    "x-content-type-options": "nosniff",
+    "content-security-policy": "default-src 'self'; script-src 'none'; object-src 'none'",
+    "x-frame-options": "DENY",
+    "content-disposition": "inline; filename=api-result.json",
+    "cache-control": "private, must-revalidate, max-age=0",
+    "content-type": "application/json; charset=utf-8",
+    "content-encoding": "gzip",
+    "age": "0",
+    "accept-ranges": "bytes",
+    "x-cache": "cp3073 miss, cp3073 pass",
+    "x-cache-status": "pass",
+    "strict-transport-security": "max-age=106384710; includeSubDomains; preload",
+    "report-to": "{ \"group\": \"wm_nel\", \"max_age\": 604800, \"endpoints\": [{ \"url\": \"https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error&schema_uri=/w3c/reportingapi/network_error/1.0.0\" }] }",
+    "nel": "{ \"report_to\": \"wm_nel\", \"max_age\": 604800, \"failure_fraction\": 0.05, \"success_fraction\": 0.0}",
+    "set-cookie": "WMF-Last-Access=23-Sep-2026;Path=/;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, WMF-Last-Access-Global=23-Sep-2026;Path=/;Domain=.wikipedia.org;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, GeoIP=UA:53:Kremenchug:49.06:33.40:v4; Path=/; secure; Domain=.wikipedia.org, NetworkProbeLimit=0.001;Path=/;Secure;SameSite=None;Max-Age=3600, WMF-Uniq=1iVvu_Q3dAYGB4njkv7HFgPkAAAAAFvdffAbt1_iwTTKXEF_beyyEUSR6e5RyI4J;Domain=.wikipedia.org;Path=/;HttpOnly;secure;SameSite=None;Expires=Thu, 23 Sep 2027 00:00:00 GMT",
+    "x-client-ip": "87.244.179.69",
+    "vary": "Accept-Encoding,X-Subdomain,Treat-as-Untrusted,X-Forwarded-Proto,Cookie,Authorization,User-Agent",
+    "content-length": "114",
+    "x-request-id": "d474d330-9fbb-4fc7-ba76-543137958a73",
+    "x-analytics": "",
+    "server-timing": "cache;desc=\"pass\", host;desc=\"cp3073\",co_id;desc=\"1063205357\""
+  },
+  "json": {
+    "batchcomplete": "",
+    "query": {
+      "pages": {
+        "-1": {
+          "ns": 0,
+          "title": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0438\u044f",
+          "missing": ""
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,860 @@
+{
+  "url": "",
+  "method": "GET",
+  "params": null,
+  "status_code": 200,
+  "response_headers": {
+    "cache-control": "s-maxage=14400, max-age=14400",
+    "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
+    "content-type": "application/json; charset=utf-8",
+    "etag": "W/\"20-da39a3ee5e6b4b0d3255bfef95601890afd80709\"",
+    "date": "Wed, 23 Sep 2026 17:52:06 GMT",
+    "server": "main-tls",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,HEAD",
+    "access-control-allow-headers": "accept, content-type, content-length, cache-control, accept-language, api-user-agent, if-match, if-modified-since, if-none-match, dnt, accept-encoding",
+    "access-control-expose-headers": "etag",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "referrer-policy": "origin-when-cross-origin",
+    "x-xss-protection": "1; mode=block",
+    "content-encoding": "gzip",
+    "age": "2",
+    "accept-ranges": "bytes",
+    "vary": "Accept-Encoding",
+    "x-cache": "cp3073 miss, cp3073 miss",
+    "x-cache-status": "miss",
+    "strict-transport-security": "max-age=106384710; includeSubDomains; preload",
+    "report-to": "{ \"group\": \"wm_nel\", \"max_age\": 604800, \"endpoints\": [{ \"url\": \"https://intake-logging.wikimedia.org/v1/events?stream=w3c.reportingapi.network_error&schema_uri=/w3c/reportingapi/network_error/1.0.0\" }] }",
+    "nel": "{ \"report_to\": \"wm_nel\", \"max_age\": 604800, \"failure_fraction\": 0.05, \"success_fraction\": 0.0}",
+    "set-cookie": "WMF-Last-Access=23-Sep-2026;Path=/;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, WMF-Last-Access-Global=23-Sep-2026;Path=/;Domain=.wikimedia.org;HttpOnly;secure;Expires=Sun, 25 Oct 2026 12:00:00 GMT, GeoIP=UA:53:Kremenchug:49.06:33.40:v4; Path=/; secure; Domain=.wikimedia.org, NetworkProbeLimit=0.001;Path=/;Secure;SameSite=None;Max-Age=3600",
+    "x-client-ip": "87.244.179.69",
+    "content-length": "697",
+    "x-request-id": "b1c31d9e-89f6-4a39-8030-ccfedc3b0351",
+    "x-analytics": "",
+    "server-timing": "cache;desc=\"miss\", host;desc=\"cp3073\",co_id;desc=\"979075921\""
+  },
+  "json": {
+    "items": [
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 46
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 37
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 47
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 50
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 49
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 56
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 61
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 83
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024010900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 137
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 161
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 153
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 87
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 89
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 98
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 196
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 226
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 190
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 216
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024011900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 119
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 83
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 109
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 192
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 158
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 151
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 194
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 106
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 73
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 100
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024012900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 135
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024013000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 150
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024013100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 148
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 134
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 93
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 58
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 93
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 152
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 154
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 130
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 176
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024020900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 106
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 51
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 81
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 170
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 171
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 149
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 162
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 88
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 83
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 86
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024021900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 122
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 96
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 103
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 123
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 94
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 66
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 93
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 97
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 80
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 91
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024022900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 104
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 69
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 65
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 71
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 87
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 85
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 74
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 60
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 42
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024030900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 57
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 73
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 70
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 97
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 102
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 92
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 58
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 53
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 54
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 120
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024031900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 83
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 93
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 109
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032200",
+        "access": "all-access",
+        "agent": "user",
+        "views": 50
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032300",
+        "access": "all-access",
+        "agent": "user",
+        "views": 49
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032400",
+        "access": "all-access",
+        "agent": "user",
+        "views": 48
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032500",
+        "access": "all-access",
+        "agent": "user",
+        "views": 67
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032600",
+        "access": "all-access",
+        "agent": "user",
+        "views": 57
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032700",
+        "access": "all-access",
+        "agent": "user",
+        "views": 56
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032800",
+        "access": "all-access",
+        "agent": "user",
+        "views": 49
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024032900",
+        "access": "all-access",
+        "agent": "user",
+        "views": 55
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024033000",
+        "access": "all-access",
+        "agent": "user",
+        "views": 44
+      },
+      {
+        "project": "uk.wikipedia",
+        "article": "\u0410\u0441\u0442\u0440\u043e\u043d\u043e\u043c\u0456\u044f",
+        "granularity": "daily",
+        "timestamp": "2024033100",
+        "access": "all-access",
+        "agent": "user",
+        "views": 51
+      }
+    ]
+  }
+}
