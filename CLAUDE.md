@@ -29,7 +29,9 @@ wikipedia-interest/        <- THE SKILL
 ```
 
 ## Stack
-Python >= 3.11, `uv`, `pytest`, `ruff`. Runtime deps only: `requests`, `numpy`, `matplotlib`, `fpdf2`.
+Python >= 3.11, `uv`, `pytest`, `ruff`. Runtime deps only in `[project.dependencies]`: `requests`, `numpy`, `matplotlib`, `fpdf2`.
+Dev tools (`pytest`, `ruff`) go in `[dependency-groups] dev = [...]` (PEP 735; add with `uv add --dev pytest ruff`).
+`uv sync` installs the `dev` group by default, so plain `uv sync` is enough. Do NOT put pytest/ruff into runtime deps or extras.
 No pandas/scipy unless clearly justified. Type hints everywhere. Small pure functions for metrics.
 CLI entry point `wikitrends` via `[project.scripts]`; run as `cd wikipedia-interest && uv run wikitrends <cmd>`.
 
