@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv *)",
+      "Bash(pytest*)",
+      "Bash(ruff *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git init*)",
+      "Bash(mkdir *)",
+      "Bash(ls*)",
+      "FileRead",
+      "FileEdit",
+      "WriteTextFile",
+      "GlobTool",
+      "GrepTool",
+      "LS"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(gh *)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Read(.env*)"
+    ]
+  }
+}
