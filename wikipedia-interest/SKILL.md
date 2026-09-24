@@ -7,9 +7,13 @@
 - Assessing the reliability of observed trends (e.g., distinguishing genuine interest spikes from noise).
 - Generating shareable reports to inform localization or content investment decisions.
 
+**Language Constraint**: Always match the language of the user's prompt in the final summary and recommendations (e.g., if user asks in Ukrainian, reply in Ukrainian).
+
 **CLI entry point**: `wikitrends` (run from the skill directory: `cd wikipedia-interest && uv run wikitrends <cmd>`).
 
 ## Workflow for Agents
+
+Do NOT write custom Python scripts or manually compute metrics. Rely strictly on the CLI outputs (`wikitrends fetch`, `analyze`, `report` or `run --spec`). All metrics are pre-calculated.
 
 Follow these steps to answer user queries about comparative interest. Each step returns a JSON object with `ok`, `data`, `warnings`, and `next_step`. Propagate `warnings` to the user; treat `next_step` as a hint for the subsequent command.
 

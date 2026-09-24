@@ -121,6 +121,37 @@ def _calculate_summary_statistics(views: list[float]) -> dict[str, Any]:
     }
 
 
+def _calculate_last_12_months_metrics(data: list[dict[str, Any]]) -> dict[str, float]:
+    """Calculate total and median views for the last 12 months of data.
+
+    Args:
+        data: List of dicts with 'date' and 'normalized_views' keys, sorted by date ascending
+
+    Returns:
+        Dictionary with 'total_views_12m' and 'median_views_12m'
+    """
+    if not data:
+        return {"total_views_12m": 0.0, "median_views_12m": 0.0}
+
+    # Data should already be sorted by date ascending, but let's ensure it
+    sorted_data = sorted(data, key=lambda x: x["date"])
+
+    # Take the last 365 days (approximately 12 months)
+    # If we have less than 365 days, use all available data
+    last_12m_data = sorted_data[-365:] if len(sorted_data) > 365 else sorted_data
+
+    # Extract normalized views for the last 12 months
+    views = [item["normalized_views"] for item in last_12m_data]
+
+    if not views:
+        return {"total_views_12m": 0.0, "median_views_12m": 0.0}
+
+    return {
+        "total_views_12m": float(sum(views)),
+        "median_views_12m": float(statistics.median(views)),
+    }
+
+
 def _detect_spikes_zscore(views: list[float], threshold: float = 3.5) -> list[bool]:
     """Detect spikes using z-score method.
 
@@ -272,6 +303,9 @@ def analyze_data(
     raw_spike_share = (raw_spike_count / len(raw_views)) if raw_views else 0.0
     norm_spike_share = (norm_spike_count / len(normalized_views)) if normalized_views else 0.0
 
+    # Calculate 12-month metrics for normalized views
+    last_12m_metrics = _calculate_last_12_months_metrics(normalized_article_views)
+
     # Prepare result
     result = {
         "ok": True,
@@ -298,12 +332,15 @@ def analyze_data(
                 "peak_value": norm_stats["max"],
                 "spike_count": norm_spike_count,
                 "spike_share": norm_spike_share,
+                "total_views_12m": last_12m_metrics["total_views_12m"],
+                "median_views_12m": last_12m_metrics["median_views_12m"],
             },
             "notes": [
                 "Normalized views = (article views / project views) * 1,000,000",
                 "Trend slope is in views per day",
                 "Relative growth = (end - start) / start",
                 "Spike detection uses z-score with threshold 3.5",
+                "12-month metrics are based on the last 365 days of data",
             ],
         },
         "warnings": warnings,
