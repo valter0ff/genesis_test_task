@@ -80,6 +80,13 @@ def main() -> None:
         help="Work directory for cached data (defaults to work/ based on last fetch)",
     )
 
+    # Report subcommand
+    report_parser = subparsers.add_parser("report", help="Generate PDF report from analyzed data")
+    report_parser.add_argument(
+        "--work-dir",
+        help="Work directory for cached data (defaults to work/ based on last fetch)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "fetch":
@@ -161,6 +168,52 @@ def main() -> None:
                 ok=False,
                 data=[],
                 warnings=[f"Unexpected error during analysis: {e!s}"],
+                next_step="Check your work directory and try again.",
+                exit_code=3,
+            )
+
+        # Save result to work directory for report step
+        result_file = work_dir / "result.json"
+        with result_file.open("w", encoding="utf-8") as f:
+            json.dump(result, f, indent=None)
+
+        # Determine exit code based on result
+        exit_code = 0 if result.get("ok", False) else 1
+        _print_json_and_exit(
+            ok=result.get("ok", False),
+            data=result.get("data", {}),
+            warnings=result.get("warnings", []),
+            next_step=result.get("next_step", ""),
+            exit_code=exit_code,
+        )
+
+    elif args.command == "report":
+        work_dir = _get_work_dir(args)
+        if not work_dir.exists():
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Work directory {work_dir} does not exist."],
+                next_step="Run 'wikitrends fetch' and 'wikitrends analyze' first.",
+                exit_code=2,
+            )
+
+        try:
+            from . import report
+            result = report.generate_report(work_dir)
+        except ImportError as e:
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Failed to import report module: {e}"],
+                next_step="Check that report.py is properly implemented.",
+                exit_code=3,
+            )
+        except Exception as e:  # noqa: BLE001
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Unexpected error during report generation: {e!s}"],
                 next_step="Check your work directory and try again.",
                 exit_code=3,
             )
