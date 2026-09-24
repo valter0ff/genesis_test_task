@@ -67,7 +67,7 @@ platform-wide traffic trend. Default window: last 24 full months.
 | `trend_pct_per_year` | Theil–Sen slope of monthly normalized series, as % of its median per year |
 | `spike_share` | robust z = (x - median) / (1.4826*MAD) on daily series; days with z > 4 are spikes; share of window views above baseline that comes from spike days |
 | `volume` | median daily views and total last-12m views |
-| `coverage` | fraction of days with data; `first_seen` if article is younger than window |
+| `first_seen` | first day with views. The API omits days with zero views (verify in stage 1a): absent days = 0 views, a 404 on a range = no views in that range (article may or may not exist: check existence separately). Flag if `first_seen` is later than window start + 30 days (article younger than window) |
 | `basket_consistency` | share of articles in basket with positive `yoy_norm` (only if >1 article) |
 | `yoy_ex_spikes` | `yoy_norm` recomputed with spike days replaced by baseline |
 
@@ -78,7 +78,7 @@ Start `high`, downgrade one level per flag (min low); some flags force `low`:
 - window < 24 months -> seasonality not controlled (downgrade)
 - median daily views < 20 (downgrade); total 12m views < 1000 (force low)
 - `spike_share` > 0.3 (downgrade); `yoy_norm` and `yoy_ex_spikes` differ in sign (force low)
-- coverage < 0.9 or article younger than window (downgrade)
+- article younger than window, see `first_seen` (downgrade)
 - basket_consistency < 0.5 (downgrade)
 - `yoy_raw` and `yoy_norm` differ in sign (downgrade; say platform-wide trend drives the result)
 Reasons are plain sentences the agent can quote. The script decides confidence; the agent only reports it.
