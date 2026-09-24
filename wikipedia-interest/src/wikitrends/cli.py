@@ -7,7 +7,6 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from .cache import CACHE_DIR_NAME
 
 from . import api
 
@@ -74,6 +73,13 @@ def main() -> None:
         help="Work directory for caching",
     )
 
+    # Analyze subcommand
+    analyze_parser = subparsers.add_parser("analyze", help="Analyze cached pageviews data")
+    analyze_parser.add_argument(
+        "--work-dir",
+        help="Work directory for cached data (defaults to work/ based on last fetch)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "fetch":
@@ -115,12 +121,58 @@ def main() -> None:
                 exit_code=3,
             )
 
+        # Save article views to work directory for analyze step
+        article_views_file = work_dir / "article_views.json"
+        with article_views_file.open("w", encoding="utf-8") as f:
+            json.dump(items, f, indent=None)
+
         _print_json_and_exit(
             ok=True,
             data=items,
             warnings=warnings,
             next_step="Run 'wikitrends analyze' to compute metrics from this data.",
             exit_code=0,
+        )
+
+    elif args.command == "analyze":
+        work_dir = _get_work_dir(args)
+        if not work_dir.exists():
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Work directory {work_dir} does not exist."],
+                next_step="Run 'wikitrends fetch' first to generate data.",
+                exit_code=2,
+            )
+
+        try:
+            from . import analyze
+            result = analyze.analyze_data(work_dir)
+        except ImportError as e:
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Failed to import analysis module: {e}"],
+                next_step="Check that analyze.py is properly implemented.",
+                exit_code=3,
+            )
+        except Exception as e:  # noqa: BLE001
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Unexpected error during analysis: {e!s}"],
+                next_step="Check your work directory and try again.",
+                exit_code=3,
+            )
+
+        # Determine exit code based on result
+        exit_code = 0 if result.get("ok", False) else 1
+        _print_json_and_exit(
+            ok=result.get("ok", False),
+            data=result.get("data", {}),
+            warnings=result.get("warnings", []),
+            next_step=result.get("next_step", ""),
+            exit_code=exit_code,
         )
 
 
