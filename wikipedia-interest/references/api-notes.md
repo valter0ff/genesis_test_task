@@ -3,9 +3,9 @@
 This document summarizes the observed behavior of the Wikimedia APIs used in the wikipedia-interest skill, based on live calls made during reconnaissance.
 
 ## User-Agent
-All requests must include a descriptive User-Agent header with contact information, e.g.:
+All requests must include a descriptive User-Agent header with contact information. The contact information should be taken from the environment variable `WIKITRENDS_CONTACT`. Example:
 ```
-User-Agent: wikitrends/0.1 (https://github.com/valteroff/Intership/Genesis; valteroff@example.com)
+User-Agent: wikitrends/0.1 (https://github.com/valteroff/Intership/Genesis; ${WIKITRENDS_CONTACT})
 ```
 
 ## 1. Pageviews API (per-article)
@@ -39,6 +39,7 @@ https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/uk.wikipedia/all
 - `views`: integer number of views.
 - The `article` field is URL-encoded in the request but returned as the original Unicode string (escaped in JSON).
 - The array is ordered by timestamp ascending.
+- **Note**: Days with zero views are omitted from the `items` array. If an article has no views for the entire requested range (e.g., future dates), the API returns HTTP 404 with a problem+json body (see section 6).
 
 **Headers observed**:
 - `content-type: application/json; charset=utf-8`
@@ -129,12 +130,13 @@ https://www.wikidata.org/w/api.php?action=wbsearchentities&search=astronomy&lang
     },
     ...
   ],
-  "search-continue": 7,  // if present, indicates more results available
+  "search-continue": 7,
   "success": 1
 }
 ```
 - Each result includes basic entity info and a `display` object with label and description in the requested language.
 - `match` indicates how the result matched the search term.
+- The `search-continue` field, if present, indicates that more results are available (use `continue` parameter to paginate).
 
 **Headers**:
 - `content-type: application/json; charset=utf-8`
@@ -175,21 +177,32 @@ https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q333&props=sitelinks
           "title": "Astronomy",
           "badges": ["Q17437798"]
         },
-        ... /* many other language projects */
+        "commonswiki": {
+          "site": "commonswiki",
+          "title": "Astronomy",
+          "badges": []
+        },
+        "specieswiki": {
+          "site": "specieswiki",
+          "title": "Astronomy",
+          "badges": []
+        },
+        /* many other language and sister projects */
       }
     }
   },
   "success": 1
 }
 ```
-- Each entry under `sitelinks` corresponds to a Wikimedia project (identified by site code, e.g., `ukwiki` for Ukrainian Wikipedia).
+- Each entry under `sitelinks` corresponds to a Wikimedia project (identified by site code, e.g., `ukwiki` for Ukrainian Wikipedia, `commonswiki` for Wikimedia Commons, `specieswiki` for Wikispecies).
 - `title` is the article title on that project.
 - `badges` (if present) indicates special status like "featured article".
+- Note: some site codes require mapping to the actual subdomain, e.g., `be_x_oldwiki` corresponds to `be-tarask.wikipedia.org`.
 
 ## 5. Wikipedia API – Query with redirects
 
 **Endpoint**:  
-`https://uk.wikipedia.org/w/api.php` (or any language-specific Wikipedia)
+`https://en.wikipedia.org/w/api.php` (or any language-specific Wikipedia)
 
 **Parameters**:
 - `action=query`
@@ -197,28 +210,71 @@ https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q333&props=sitelinks
 - `redirects=1`
 - `format=json`
 
-**Example call** (checking for redirect from Russian "Астрономия" to Ukrainian "Астрономія"):
+**Example call** (checking for redirects from "Astronomy" on English Wikipedia):
 ```
-https://uk.wikipedia.org/w/api.php?action=query&titles=%D0%90%D1%81%D1%82%D1%80%D0%BE%D0%BD%D0%BE%D0%BC%D0%B8%D1%8F&redirects=1&format=json
+https://en.wikipedia.org/w/api.php?action=query&prop=redirects&titles=Astronomy&format=json
 ```
 
-**Response shape** (when the title does not exist and is not a redirect):
+**Response shape** (for `prop=redirects`):
 ```json
 {
   "batchcomplete": "",
   "query": {
     "pages": {
-      "-1": {
+      "50650": {
+        "pageid": 50650,
         "ns": 0,
-        "title": "Астрономия",
-        "missing": ""
+        "title": "Astronomy",
+        "redirects": [
+          {
+            "pageid": 52038,
+            "ns": 0,
+            "title": "Stellar astronomy"
+          },
+          {
+            "pageid": 102185,
+            "ns": 0,
+            "title": "Astronomical"
+          },
+          ...
+        ]
       }
     }
   }
 }
 ```
-- If the title exists or is a redirect, the `pages` object will contain the page ID (positive integer) and may include a `redirects` array.
-- For a successful redirect resolution, the response includes a `redirects` array mapping the input title to the target title.
+- The `redirects` array (if present) lists titles that redirect to the given title.
+
+**Example call** (resolving a redirect title):
+```
+https://en.wikipedia.org/w/api.php?action=query&titles=Stellar%20astronomy&redirects=1&format=json
+```
+
+**Response shape** (for `titles` with `redirects=1`):
+```json
+{
+  "batchcomplete": "",
+  "query": {
+    "redirects": [
+      {
+        "from": "Stellar astronomy",
+        "to": "Astronomy",
+        "tofragment": "Stellar"
+      }
+    ],
+    "pages": {
+      "50650": {
+        "pageid": 50650,
+        "ns": 0,
+        "title": "Astronomy"
+      }
+    }
+  }
+}
+```
+- The `redirects` array shows the mapping from the input title to the target title.
+- The `pages` object contains the target page (normalized title).
+- If the input title is not a redirect, the `redirects` array is absent and the `pages` object contains the input title (with a positive pageid).
 
 **Headers**:
 - `content-type: application/json; charset=utf-8`
@@ -247,11 +303,39 @@ https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/uk.wikipedia/all
 - Content-Type: `application/problem+json`
 - The `detail` field explains the condition; it may vary slightly.
 - The `uri` field echoes the requested path.
+- Note: This same 404 response is also returned when requesting an existing article for a date range with no data (e.g., future dates).
 
 **Headers**:
 - `content-type: application/problem+json`
 - `cache-control: s-maxage=600` (shorter caching for errors)
 - `x-cache`: miss
+
+## 7. Article Titles Containing Slashes
+
+Article titles containing slash characters (e.g., "AC/DC") must be fully percent-encoded in the Pageviews API URL. Using `safe=''` in Python's `urllib.parse.quote` ensures that the slash is encoded as `%2F`.
+
+**Example call** (English Wikipedia, article "AC/DC", daily, one day):
+```
+https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/AC%2FDC/daily/20260923/20260924
+```
+This request returns a successful response with data for the article.
+
+**Response shape** (JSON):
+```json
+{
+  "items": [
+    {
+      "project": "en.wikipedia",
+      "article": "AC/DC",
+      "granularity": "daily",
+      "timestamp": "2026092300",
+      "access": "all-access",
+      "agent": "user",
+      "views": 5617
+    }
+  ]
+}
+```
 
 ## Rate Limits and Errors
 
