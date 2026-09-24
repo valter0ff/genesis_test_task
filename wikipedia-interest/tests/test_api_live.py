@@ -33,7 +33,7 @@ def test_dense_fill_returns_all_days():
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     output = json.loads(result.stdout)
     assert output["ok"], f"Fetch failed: {output}"
-    data = output["data"]
+    data = output["data"]["article_views"]
 
     # Dense fill guarantees we get exactly 90 days of data
     assert len(data) == 90, f"Expected exactly 90 items with dense fill, got {len(data)}"
