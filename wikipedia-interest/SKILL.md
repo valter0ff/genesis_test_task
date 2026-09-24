@@ -10,12 +10,15 @@
 **Language Constraint**: Always match the language of the user's prompt in the final summary and recommendations (e.g., if user asks in Ukrainian, reply in Ukrainian).
 
 **CLI entry point**: `wikitrends` (run from the skill directory: `cd wikipedia-interest && uv run wikitrends <cmd>`).
+All commands return JSON with `work_dir` field indicating the working directory used.
 
 ## Workflow for Agents
 
 Do NOT write custom Python scripts or manually compute metrics. Rely strictly on the CLI outputs (`wikitrends fetch`, `analyze`, `report` or `run --spec`). All metrics are pre-calculated.
 
 Follow these steps to answer user queries about comparative interest. Each step returns a JSON object with `ok`, `data`, `warnings`, and `next_step`. Propagate `warnings` to the user; treat `next_step` as a hint for the subsequent command.
+
+**Note**: The `run --spec` command combines all steps (fetch → analyze → report) and is recommended for most use cases.
 
 ### 1. Resolve topic to articles (optional but recommended)
 Use the `resolve` subcommand (not yet exposed as a standalone CLI; see note below) to map a topic name and target languages to specific Wikipedia article titles. This step is currently internal to the `run --spec` workflow. For direct CLI use, you must know the exact article titles per language.
@@ -30,7 +33,7 @@ uv run wikitrends fetch --project <project> --article <article> --start <YYYYMMD
 - `--project`: e.g., `en.wikipedia`, `de.wikipedia`
 - `--article`: title in underscores (e.g., `Electric_car`)
 - `--start`/`--end`: date range in `YYYYMMDD` (use full months only; the tool will ignore incomplete months)
-- Output: JSON array of daily views (one object per day with `timestamp` and `views`). Saved to `work/<slug>/article_views.json`.
+- Output: JSON object containing `article_views` (daily views array) and `project_views` (monthly project views array for normalization), plus `work_dir` indicating the working directory. Saved to `work/<slug>/article_views.json` and `work/<slug>/project_views.json`.
 - `next_step`: typically "Run 'wikitrends analyze' to compute metrics from this data."
 
 ### 3. Compute metrics
@@ -64,8 +67,10 @@ Where `spec.json` contains:
   "criteria": {"min_confidence": "medium"}
 }
 ```
-- The command runs resolve → fetch → analyze → report sequentially.
+- The command runs fetch → analyze → report sequentially for each language.
 - The spec is saved to the work directory for follow‑ups (e.g., changing only `languages` or `window` avoids refetching).
+- Output: JSON containing `work_dir`, `language_results` with analysis and report data for each language, plus `charts_and_reports` with file paths.
+- `next_step`: indicates completion or next actions for failed languages.
 
 ## Interpreting Output
 
