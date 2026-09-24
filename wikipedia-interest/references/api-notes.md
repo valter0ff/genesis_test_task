@@ -5,7 +5,7 @@ This document summarizes the observed behavior of the Wikimedia APIs used in the
 ## User-Agent
 All requests must include a descriptive User-Agent header with contact information. The contact information should be taken from the environment variable `WIKITRENDS_CONTACT`. Example:
 ```
-User-Agent: wikitrends/0.1 (https://github.com/valteroff/Intership/Genesis; ${WIKITRENDS_CONTACT})
+User-Agent: wikitrends/0.1 (<repo-url>; ${WIKITRENDS_CONTACT})
 ```
 
 ## 1. Pageviews API (per-article)

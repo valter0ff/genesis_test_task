@@ -32,3 +32,9 @@ dev = [
 
 [project.scripts]
 wikitrends = "wikitrends.cli:main"
+
+[tool.pytest.ini_options]
+markers = [
+    "live: mark test as live test (excluded by default)",
+]
+addopts = ["-m", "not live"]
