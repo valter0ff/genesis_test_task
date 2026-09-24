@@ -47,34 +47,45 @@ def test_404_response_treated_as_zeros():
         assert "No data found" in warnings[0]
 
 
-def test_429_retry_then_success():
+def test_429_retry_then_success(tmp_path):
     """Test that 429 status triggers retries and eventually succeeds."""
+    mock_responses = []
+
+    mock_resp1 = patch("requests.Response").start()
+    mock_resp1.status_code = 429
+    mock_responses.append(mock_resp1)
+
+    mock_resp2 = patch("requests.Response").start()
+    mock_resp2.status_code = 429
+    mock_responses.append(mock_resp2)
+
+    mock_resp3 = patch("requests.Response").start()
+    mock_resp3.status_code = 200
+    mock_resp3.json.return_value = {
+        "items": [{"timestamp": "2024010100", "views": 100}]
+    }
+    mock_responses.append(mock_resp3)
+
     call_count = 0
 
     def mock_get_side_effect(*args, **kwargs):
         nonlocal call_count
+        resp = mock_responses[call_count]
         call_count += 1
-        mock_resp = patch("requests.Response").start()
-        if call_count < 3:
-            mock_resp.status_code = 429
-        else:
-            mock_resp.status_code = 200
-            mock_resp.json.return_value = {
-                "items": [{"timestamp": "2024010100", "views": 100}]
-            }
-        return mock_resp
+        return resp
 
     with patch("requests.get", side_effect=mock_get_side_effect), patch("time.sleep"):
         items, _ = api.get_article_views_daily(
             project="uk.wikipedia",
-            article="Test Article",
+            article="Test Article 429 Unique",  # Уникальное название статьи, чтобы не попадать в кэш
             start_date="20240101",
             end_date="20240101",
+            work_dir=tmp_path,  # Использование изолированной директории
         )
 
-        assert call_count == 3
-        assert len(items) == 1
-        assert items[0]["views"] == 100
+    assert call_count == 3
+    assert len(items) == 1
+    assert items[0]["views"] == 100
 
 
 def test_cache_hit_second_call(tmp_path):
