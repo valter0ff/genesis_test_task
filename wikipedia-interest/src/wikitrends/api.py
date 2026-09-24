@@ -1,247 +1,161 @@
-"""
-Wikimedia API client with caching and retry logic.
-"""
-import json
+"""Wikimedia Pageviews client: sequential requests, retry with backoff, disk cache."""
+
+from __future__ import annotations
+
+import os
 import time
 import urllib.parse
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import requests
 
 from . import cache
 
-# Constants
-WIKIMEDIA_API = "https://wikimedia.org/api/rest_v1/metrics/pageviews"
-USER_AGENT_TEMPLATE = "wikitrends/0.1 (<repo-url>; {contact})"
-DEFAULT_HEADERS = {
-    "Accept": "application/json",
-}
-# Delay between requests to avoid hitting rate limits too fast
-REQUEST_DELAY_SECONDS = 0.1  # 100ms
-# Retry settings
+API_BASE = "https://wikimedia.org/api/rest_v1/metrics/pageviews"
+DEFAULT_CONTACT = "https://github.com/valter0ff/wikipedia-interest"
+REQUEST_DELAY_SECONDS = 0.1
 MAX_RETRIES = 5
-BACKOFF_FACTOR = 0.5  # seconds, will be multiplied by 2^(retry-1)
+BACKOFF_SECONDS = 0.5
+RETRY_STATUSES = {429, 500, 502, 503, 504}
+EARLIEST_DATE = date(2015, 7, 1)  # Pageviews data starts here
+RECENT_DAYS = 3  # data this fresh may still be revised, so it is cached only briefly
+DATE_LEN = 8
 
 
 class APIError(Exception):
-    """Base exception for API errors."""
+    """Request failed after retries, or the API returned an unexpected response."""
 
 
-def _build_user_agent(contact: str | None = None) -> str:
-    """Build the User-Agent header value."""
-    if contact is None:
-        contact = "<repo-url>"  # placeholder
-    return USER_AGENT_TEMPLATE.format(contact=contact)
-
-
-def _make_request(
-    url: str,
-    params: dict[str, Any] | None = None,
-    work_dir: Any | None = None,
-    use_cache: bool = True,
-) -> tuple[Any, int]:
-    """
-    Make a GET request with caching, retry, and delay.
-    Returns (data, status_code) or raises APIError on failure after retries.
-    If use_cache is True and work_dir is provided, caching is attempted.
-    """
-    headers = {
-        "User-Agent": _build_user_agent(),
-        **DEFAULT_HEADERS,
-    }
-
-    # If caching is enabled and work_dir provided, try to get cached response
-    if use_cache and work_dir is not None:
-        cached_data, _ = cache.get_cached_response(work_dir, url)
-        if cached_data is not None:
-            return cached_data, 200  # Assume cached data is valid
-
-    # We will need to fetch; apply delay before request to be nice
-    time.sleep(REQUEST_DELAY_SECONDS)
-
-    last_exception: Exception | None = None
-    for attempt in range(MAX_RETRIES):
+def parse_date(value: str) -> date:
+    """Parse YYYYMMDD strictly; raise ValueError with a clear message otherwise."""
+    if len(value) == DATE_LEN and value.isdigit():
         try:
-            resp = requests.get(url, headers=headers, params=params, timeout=30)
-            # If we get a successful response, break
-            if resp.status_code < 400:
-                # Cache the response if caching enabled
-                if use_cache and work_dir is not None:
-                    try:
-                        data = resp.json()
-                        cache.cache_response(work_dir, url, data)
-                    except (json.JSONDecodeError, OSError):
-                        # If we can't cache, just continue
-                        pass
-                return resp.json(), resp.status_code
-            # If we get a 429 or 5xx, we will retry after backoff
-            if resp.status_code in (429, 500, 502, 503, 504):
-                last_exception = APIError(
-                    f"HTTP {resp.status_code}: {resp.text[:200]}"
-                )
-                # Exponential backoff
-                wait_time = BACKOFF_FACTOR * (2 ** attempt)
-                time.sleep(wait_time)
-                continue
-            # For other status codes (like 404, 400), we do not retry
-            # We'll return the error response (or raise?)
-            # For 404, we want to return the JSON error body so the caller can handle it.
-            # We'll return the JSON and status code.
-            try:
-                return resp.json(), resp.status_code
-            except json.JSONDecodeError:
-                # If not JSON, return text
-                return {"text": resp.text}, resp.status_code
-        except requests.RequestException as e:
-            last_exception = e
-            # Wait before retry
-            wait_time = BACKOFF_FACTOR * (2 ** attempt)
-            time.sleep(wait_time)
-            continue
-
-    # If we exhausted retries, raise the last exception
-    raise last_exception or APIError("Unknown error after retries")
+            return datetime.strptime(value, "%Y%m%d").replace(tzinfo=UTC).date()
+        except ValueError:
+            pass
+    msg = f"Invalid date '{value}': use a real calendar date in YYYYMMDD format."
+    raise ValueError(msg)
 
 
-def _encode_title(title: str) -> str:
-    """
-    Replace spaces with underscores and then percent-encode with safe=''.
-    This ensures that slashes are also encoded.
-    """
-    # Replace spaces with underscores
-    title = title.replace(" ", "_")
-    # Percent-encode everything except the unreserved characters (but we set safe='')
-    # So everything that is not alphanumeric or -._~ will be encoded.
-    return urllib.parse.quote(title, safe="")
+def user_agent() -> str:
+    """Wikimedia requires a descriptive User-Agent with contact information."""
+    return f"wikitrends/0.1 ({os.environ.get('WIKITRENDS_CONTACT', DEFAULT_CONTACT)})"
+
+
+def encode_title(title: str) -> str:
+    """Spaces -> underscores, then full percent-encoding (so 'AC/DC' -> 'AC%2FDC')."""
+    return urllib.parse.quote(title.strip().replace(" ", "_"), safe="")
+
+
+def _today() -> date:
+    return datetime.now(UTC).date()
+
+
+def _get_json(url: str, *, permanent: bool, work_dir: Path | None = None) -> tuple[Any, int]:
+    """GET with cache and retry. Returns (body, status); 404 is returned, not raised."""
+    hit = cache.get(url, work_dir=work_dir)
+    if hit is not None:
+        return hit
+    last_error = "unknown error"
+    for attempt in range(MAX_RETRIES):
+        time.sleep(REQUEST_DELAY_SECONDS)
+        try:
+            resp = requests.get(
+                url,
+                headers={"User-Agent": user_agent(), "Accept": "application/json"},
+                timeout=30,
+            )
+        except requests.RequestException as exc:
+            last_error = str(exc)
+        else:
+            if resp.status_code in RETRY_STATUSES:
+                last_error = f"HTTP {resp.status_code}"
+            elif resp.status_code in (200, 404):
+                try:
+                    body = resp.json()
+                except ValueError as exc:
+                    msg = f"Response is not valid JSON: {url}"
+                    raise APIError(msg) from exc
+                cache.put(url, body, resp.status_code, permanent=permanent, work_dir=work_dir)
+                return body, resp.status_code
+            else:
+                msg = f"HTTP {resp.status_code} for {url}: {resp.text[:200]}"
+                raise APIError(msg)
+        time.sleep(BACKOFF_SECONDS * 2**attempt)
+    msg = f"Failed after {MAX_RETRIES} attempts ({last_error}): {url}"
+    raise APIError(msg)
+
+
+def _prepare_range(start_date: str, end_date: str) -> tuple[date, date, list[str]]:
+    """Validate dates; clamp the end to yesterday."""
+    start, end = parse_date(start_date), parse_date(end_date)
+    warnings: list[str] = []
+    if start < EARLIEST_DATE:
+        msg = "Start date is before 20150701: Wikimedia pageviews data starts in July 2015."
+        raise ValueError(msg)
+    if start > end:
+        msg = "Start date must not be after end date."
+        raise ValueError(msg)
+    yesterday = _today() - timedelta(days=1)
+    if end > yesterday:
+        end = yesterday
+        warnings.append(
+            f"End date moved to {end:%Y%m%d}: today's and future data are not available yet."
+        )
+    if start > end:
+        msg = "The whole range is in the future: no data available yet."
+        raise ValueError(msg)
+    return start, end, warnings
 
 
 def get_article_views_daily(
-    project: str,
-    article: str,
-    start_date: str,
-    end_date: str,
-    work_dir: Any | None = None,
+    project: str, article: str, start_date: str, end_date: str, work_dir: Path | None = None
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    """
-    Fetch daily views for an article between start_date and end_date (inclusive).
-    Returns a list of dicts with keys: date (YYYYMMDD), views (int).
-    Also returns a list of warning messages.
-    If the API returns 404 (no data), we treat it as all zeros and add a warning.
-    """
-    # Validate dates format? We'll assume they are correct.
-    encoded_article = _encode_title(article)
-    url = f"{WIKIMEDIA_API}/per-article/{project}/all-access/user/{encoded_article}/daily/{start_date}/{end_date}"
+    """Daily views (agent=user, all-access) for every day in the range, inclusive."""
+    start, end, warnings = _prepare_range(start_date, end_date)
+    url = (
+        f"{API_BASE}/per-article/{project}/all-access/user/"
+        f"{encode_title(article)}/daily/{start:%Y%m%d}/{end:%Y%m%d}"
+    )
+    permanent = end < _today() - timedelta(days=RECENT_DAYS)
+    body, status = _get_json(url, permanent=permanent, work_dir=work_dir)
 
-    try:
-        data, status_code = _make_request(url, work_dir=work_dir, use_cache=True)
-    except APIError as e:
-        # If we fail after retries, we treat as error and return empty data with warning.
-        return [], [f"Failed to fetch data after {MAX_RETRIES} retries: {e!s}"]
-
-    warnings: list[str] = []
-    items: list[dict[str, Any]] = []
-
-    if status_code == 200:
-        # Success: parse the items
-        raw_items = data.get("items", [])
-        # Build a map from date to views for quick lookup
-        view_map = {}
-        for item in raw_items:
-            # item has keys: project, article, granularity, timestamp, access, agent, views
-            # timestamp is like YYYYMMDDHH
-            date_str = item["timestamp"][:8]  # YYYYMMDD
-            views = item["views"]
-            view_map[date_str] = views
-
-        # Generate a dense list for every day in the range
-        start = date.strptime(start_date, "%Y%m%d")
-        end = date.strptime(end_date, "%Y%m%d")
-        current = start
-        while current <= end:
-            date_str = current.strftime("%Y%m%d")
-            views = view_map.get(date_str, 0)
-            items.append({"date": date_str, "views": views})
-            current += timedelta(days=1)
-
-    elif status_code == 404:
-        # No data for the range: treat as all zeros
+    views_by_day: dict[str, int] = {}
+    if status == 404:
         warnings.append(
-            f"No data found for article '{article}' in project '{project}' "
-            f"from {start_date} to {end_date}. Assuming zero views for all days."
+            f"No data found for '{article}' on {project} between {start:%Y%m%d} and {end:%Y%m%d}."
         )
-        # Generate a dense list of zeros
-        start = date.strptime(start_date, "%Y%m%d")
-        end = date.strptime(end_date, "%Y%m%d")
-        current = start
-        while current <= end:
-            date_str = current.strftime("%Y%m%d")
-            items.append({"date": date_str, "views": 0})
-            current += timedelta(days=1)
     else:
-        # Other error status codes
-        warnings.append(
-            f"Unexpected HTTP {status_code} when fetching article views: {data.get('detail', 'No details')}"
-        )
-        # Return empty items
-        items = []
+        for item in body.get("items", []):
+            views_by_day[item["timestamp"][:8]] = item["views"]
 
-    return items, warnings
+    days: list[dict[str, Any]] = []
+    day = start
+    while day <= end:
+        key = f"{day:%Y%m%d}"
+        days.append({"date": key, "views": views_by_day.get(key, 0)})
+        day += timedelta(days=1)
+    return days, warnings
 
 
 def get_project_views_monthly(
-    project: str,
-    start_date: str,
-    end_date: str,
-    work_dir: Any | None = None,
+    project: str, start_date: str, end_date: str, work_dir: Path | None = None
 ) -> tuple[list[dict[str, Any]], list[str]]:
-    """
-    Fetch monthly aggregate views for a project between start_date and end_date (inclusive).
-    Returns a list of dicts with keys: date (YYYYMMDD), views (int).
-    Also returns a list of warning messages.
-    """
-    url = f"{WIKIMEDIA_API}/aggregate/{project}/all-access/user/monthly/{start_date}/{end_date}"
-
-    try:
-        data, status_code = _make_request(url, work_dir=work_dir, use_cache=True)
-    except APIError as e:
-        return [], [f"Failed to fetch data after {MAX_RETRIES} retries: {e!s}"]
-
-    warnings: list[str] = []
-    items: list[dict[str, Any]] = []
-
-    if status_code == 200:
-        raw_items = data.get("items", [])
-        for item in raw_items:
-            # item has keys: project, access, agent, granularity, timestamp, views
-            timestamp = item["timestamp"]  # YYYYMMDDHH
-            date_str = timestamp[:8]  # YYYYMMDD (first day of month)
-            views = item["views"]
-            items.append({"date": date_str, "views": views})
-        # The items are already in order? We'll sort just in case.
-        items.sort(key=lambda x: x["date"])
-    elif status_code == 404:
-        warnings.append(
-            f"No monthly aggregate data found for project '{project}' "
-            f"from {start_date} to {end_date}. Assuming zero views for all months."
-        )
-        # Generate a dense list of zeros for each month in the range
-        start = date.strptime(start_date, "%Y%m%d")
-        end = date.strptime(end_date, "%Y%m%d")
-        # We'll iterate by month
-        current = start
-        while current <= end:
-            date_str = current.strftime("%Y%m01")  # first day of month
-            items.append({"date": date_str, "views": 0})
-            # Move to next month
-            if current.month == 12:
-                current = current.replace(year=current.year + 1, month=1)
-            else:
-                current = current.replace(month=current.month + 1)
-    else:
-        warnings.append(
-            f"Unexpected HTTP {status_code} when fetching project views: {data.get('detail', 'No details')}"
-        )
-        items = []
-
+    """Monthly total views of a whole project."""
+    start, end, warnings = _prepare_range(start_date, end_date)
+    url = (
+        f"{API_BASE}/aggregate/{project}/all-access/user/monthly/"
+        f"{start:%Y%m%d}/{end:%Y%m%d}"
+    )
+    permanent = end < _today() - timedelta(days=RECENT_DAYS)
+    body, status = _get_json(url, permanent=permanent, work_dir=work_dir)
+    if status == 404:
+        msg = f"No aggregate data for project '{project}': check the name (e.g. uk.wikipedia)."
+        raise APIError(msg)
+    items = sorted(
+        ({"date": i["timestamp"][:8], "views": i["views"]} for i in body.get("items", [])),
+        key=lambda x: x["date"],
+    )
     return items, warnings
