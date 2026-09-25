@@ -85,4 +85,5 @@ work/
 .cache/
 
 # Environment variables
-.envspec*.json
+.env
+spec*.json

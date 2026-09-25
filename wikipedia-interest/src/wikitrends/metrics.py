@@ -183,7 +183,7 @@ def find_spikes(daily: list[float]) -> tuple[list[bool], list[float], float]:
 
 def remove_spikes(daily: list[float], flags: list[bool], baseline: list[float]) -> list[float]:
     """Replace flagged days with baseline value."""
-    return [baseline[i] if flags[i] else daily[i] for i in range(len(daily))]
+    return [b if f else d for d, f, b in zip(daily, flags, baseline)]
 
 
 def analyze_topic(articles: dict[str, list[float]], start: str, project_monthly: dict[str, float]) -> dict:
