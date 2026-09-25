@@ -190,7 +190,7 @@ def analyze_topic(articles: dict[str, list[float]], start: str, project_monthly:
     """Analyze a topic (set of articles) and return metrics."""
     if not articles:
         return {
-            "months": {},
+            "months": 0,
             "yoy_raw": None,
             "yoy_norm": None,
             "yoy_ex_spikes": None,
@@ -273,7 +273,7 @@ def analyze_topic(articles: dict[str, list[float]], start: str, project_monthly:
         basket_consistency = positive_count / len(articles)
 
     return {
-        "months": normalized_monthly,
+        "months": len(basket_monthly),
         "yoy_raw": yoy_raw,
         "yoy_norm": yoy_norm,
         "yoy_ex_spikes": yoy_ex_spikes,

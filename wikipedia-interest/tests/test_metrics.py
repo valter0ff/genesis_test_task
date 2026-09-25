@@ -54,7 +54,7 @@ def test_normalize():
     norm = normalize(article, project)
     assert norm == {"2020-01": 10000.0, "2020-02": 10000.0}
 
-    # Zero project views -> avoid division by zero, should skip.
+    # Zero project views -> avoid division by zero, skip.
     article = {"2020-01": 1000.0}
     project = {"2020-01": 0.0}
     norm = normalize(article, project)
@@ -156,20 +156,35 @@ def test_remove_spikes():
 
 
 def test_analyze_topic():
-    """Test the analyze_topic function with the scenarios from the task."""
-    # We'll create helper functions to generate daily data.
-
-    # Scenario A: Steady synthetic growth over 2 years -> yoy_norm > 0, trend_pct_per_year > 0, spike_share < 0.05
-    # We'll create two years of monthly data (but we need daily). We'll approximate by making daily values
-    # that grow steadily over 2 years (731 days to account for leap year).
+    """Generic test for analyze_topic - checks that the function runs and returns expected keys."""
     start = "2020-01-01"
-    n_days = 731  # 2 years (accounting for leap year 2020)
-    # Let's create a linear growth from 10 to 20 over 731 days.
-    # We'll create one article for simplicity.
+    n_days = 731
     daily_values = [10.0 + (10.0 * i / (n_days-1)) for i in range(n_days)]
     articles = {"Article A": daily_values}
-    # We need project_monthly data for normalization. We'll make the project views constant over time.
-    # We'll generate project_monthly from 2020-01 to 2021-12 with constant value, say 1e6.
+    project_monthly = {}
+    year, month, _ = map(int, start.split('-'))
+    for i in range(24):  # 24 months
+        m = month + i
+        y = year + (m - 1) // 12
+        m = (m - 1) % 12 + 1
+        month_key = f"{y:04d}-{m:02d}"
+        project_monthly[month_key] = 1e6  # constant
+
+    result = analyze_topic(articles, start, project_monthly)
+    # Check that we get the expected keys and that months is an int (count of full months)
+    assert isinstance(result["months"], int)
+    assert result["months"] == 24  # we have 24 full months
+    assert result["yoy_norm"] is not None
+    assert result["yoy_norm"] > 0  # growing scenario
+    # We don't check exact values here; the specific scenario tests do that.
+
+
+def test_steady_growth_is_high_confidence():
+    """Scenario A: Steady synthetic growth over 2 years -> yoy_norm > 0, trend_pct_per_year > 0, spike_share < 0.05"""
+    start = "2020-01-01"
+    n_days = 731  # 2 years (accounting for leap year 2020)
+    daily_values = [10.0 + (10.0 * i / (n_days-1)) for i in range(n_days)]
+    articles = {"Article A": daily_values}
     project_monthly = {}
     year, month, _ = map(int, start.split('-'))
     for i in range(24):  # 24 months
@@ -185,15 +200,16 @@ def test_analyze_topic():
     assert result["trend_pct_per_year"] is not None and result["trend_pct_per_year"] > 0
     assert result["spike_share"] < 0.05
 
-    # Scenario B: One huge spike added to an otherwise flat/declining 2-year series -> spike_share > 0.3,
-    #   sign(yoy_norm) != sign(yoy_ex_spikes)
-    # We'll create flat daily values (say 1.0) for 2 years, then add a huge spike in the middle of the second year.
+
+def test_single_spike_flips_sign_between_yoy_norm_and_yoy_ex_spikes():
+    """Scenario B: One huge spike added to an otherwise flat/declining 2-year series -> spike_share > 0.3,
+       sign(yoy_norm) != sign(yoy_ex_spikes)"""
+    start = "2020-01-01"
     n_days = 731
     daily_values = [1.0] * n_days
     # Add a spike at the start of the second year: day 366 (which is 2021-01-01) -> value 1000.0
     daily_values[366] = 1000.0
     articles = {"Article B": daily_values}
-    # Project monthly: we'll make it constant so that normalization doesn't change the shape.
     project_monthly = {}
     year, month, _ = map(int, start.split('-'))
     for i in range(24):
@@ -240,49 +256,75 @@ def test_analyze_topic():
     # We expect them to be different.
     assert s_norm != s_ex, f"yoy_norm={result['yoy_norm']}, yoy_ex_spikes={result['yoy_ex_spikes']}"
 
-    # Scenario C: Pure seasonal sine wave (no trend) over 2 years -> |yoy_norm| < 0.05 and |trend_pct_per_year| < 5
-    # We'll create a daily series that is a sine wave with period 365 days, no trend.
+
+def test_pure_seasonality_has_near_zero_yoy_and_trend():
+    """Scenario C: Pure seasonal sine wave (no trend) over 2 years -> |yoy_norm| < 0.05 and |trend_pct_per_year| < 5"""
+    start = "2020-01-01"
     n_days = 731
     daily_values = [100.0 + 50.0 * math.sin(2 * math.pi * i / 365.0) for i in range(n_days)]
     articles = {"Article C": daily_values}
+    project_monthly = {}
+    year, month, _ = map(int, start.split('-'))
+    for i in range(24):  # 24 months
+        m = month + i
+        y = year + (m - 1) // 12
+        m = (m - 1) % 12 + 1
+        month_key = f"{y:04d}-{m:02d}"
+        project_monthly[month_key] = 1e6  # constant
+
     result = analyze_topic(articles, start, project_monthly)
     assert abs(result["yoy_norm"]) < 0.05
     assert abs(result["trend_pct_per_year"]) < 5.0
 
-    # Scenario D: Linear decline from 100 to 50 over 24 monthly points -> trend_pct_per_year approx -35 (+-3)
-    # We'll create 2 years of monthly data (but we need daily). We'll approximate by making daily values
-    # that decline linearly over 24 months (730 days) from 100 to 50.
-    # However, the spec says: over 24 monthly points. We'll create 24 months of daily data, each month having constant daily value.
-    # We'll create 24 months, each month has 30 days (for simplicity) -> 720 days.
-    n_days = 720
+
+def test_linear_decline_100_to_50_trend_is_about_minus_35():
+    """Scenario D: Linear decline from 100 to 50 over 24 monthly points -> trend_pct_per_year approx -35 (+-3)"""
+    start = "2020-01-01"
     # 24 months: month i (0-index) has daily value = 100 - (50 * i / 23)
     daily_values = []
     for i in range(24):
         month_value = 100.0 - (50.0 * i / 23.0)
         daily_values.extend([month_value] * 30)
     articles = {"Article D": daily_values}
-    # We'll need to adjust the start and project_monthly for 24 months.
-    # We'll use the same start and generate project_monthly for 24 months.
+    project_monthly = {}
+    year, month, _ = map(int, start.split('-'))
+    for i in range(24):  # 24 months
+        m = month + i
+        y = year + (m - 1) // 12
+        m = (m - 1) % 12 + 1
+        month_key = f"{y:04d}-{m:02d}"
+        project_monthly[month_key] = 1e6  # constant
+
     result = analyze_topic(articles, start, project_monthly)
     # We expect trend_pct_per_year to be around -35.
     # We'll allow a tolerance of 3.
     assert result["trend_pct_per_year"] is not None
     assert abs(result["trend_pct_per_year"] - (-35.0)) < 3.0
 
-    # Scenario E: Article with all zeros for the first 6 months then flat views -> young_article is True
-    # We'll create 2 years of data: first 6 months (approx 180 days) zeros, then flat 1.0 for the rest.
+
+def test_young_article_flagged_when_starts_mid_window():
+    """Scenario E: Article with all zeros for the first 6 months then flat views -> young_article is True"""
+    start = "2020-01-01"
     n_days = 731
     daily_values = [0.0] * 180 + [1.0] * (n_days - 180)
     articles = {"Article E": daily_values}
+    project_monthly = {}
+    year, month, _ = map(int, start.split('-'))
+    for i in range(24):  # 24 months
+        m = month + i
+        y = year + (m - 1) // 12
+        m = (m - 1) % 12 + 1
+        month_key = f"{y:04d}-{m:02d}"
+        project_monthly[month_key] = 1e6  # constant
+
     result = analyze_topic(articles, start, project_monthly)
     # The first positive day is at index 180, which is 180 days after start -> more than 30 days -> young_article should be True.
     assert result["young_article"] == True
 
-    # Scenario F: 3 articles, only 1 growing -> basket_consistency approx 0.33
-    # We'll create three articles over 2 years.
-    # Article 1: growing (as in scenario A)
-    # Article 2: flat
-    # Article 3: declining
+
+def test_basket_consistency_one_of_three_growing():
+    """Scenario F: 3 articles, only 1 growing -> basket_consistency approx 0.33"""
+    start = "2020-01-01"
     n_days = 731
     # Article 1: linear growth from 10 to 20
     daily1 = [10.0 + (10.0 * i / (n_days-1)) for i in range(n_days)]
@@ -295,39 +337,33 @@ def test_analyze_topic():
         "Article F2": daily2,
         "Article F3": daily3,
     }
+    project_monthly = {}
+    year, month, _ = map(int, start.split('-'))
+    for i in range(24):  # 24 months
+        m = month + i
+        y = year + (m - 1) // 12
+        m = (m - 1) % 12 + 1
+        month_key = f"{y:04d}-{m:02d}"
+        project_monthly[month_key] = 1e6  # constant
+
     result = analyze_topic(articles, start, project_monthly)
     # We expect basket_consistency to be about 1/3 because only one article is growing (the first one).
-    # However, note that the basket is the sum of the three articles.
-    # Let's compute the basket:
-    #   Article1: growing from 10 to 20 -> average 15
-    #   Article2: flat 5
-    #   Article3: declining from 20 to 10 -> average 15
-    #   Basket: Article1+Article2+Article3:
-    #       starts at 10+5+20 = 35
-    #       ends at 20+5+10 = 35
-    #       Actually, it's flat? Because the growth of article1 is offset by the decline of article3.
-    #   So the basket is flat (constant 35) -> then the yoy_norm for each article in the basket? Wait, we compute basket_consistency as the share of articles in the basket with positive yoy_norm.
-    #   We compute yoy_norm for each article individually (not the basket).
-    #   Article1: growing -> positive yoy_norm.
-    #   Article2: flat -> yoy_norm around 0.
-    #   Article3: declining -> negative yoy_norm.
-    #   So only one article has positive yoy_norm -> basket_consistency = 1/3.
     assert result["basket_consistency"] is not None
     assert abs(result["basket_consistency"] - (1.0/3.0)) < 0.05
 
-    # Scenario G: Fewer than 24 full months of monthly data -> yoy(monthly) is None
+
+def test_short_window_yoy_is_none():
+    """Scenario G: Fewer than 24 full months of monthly data -> yoy(monthly) is None"""
     # We'll test the yoy function directly.
     monthly = {f"2020-{i+1:02d}": 100.0 for i in range(23)}  # 23 months
     assert yoy(monthly) is None
 
     # Also test that analyze_topic returns None for yoy_raw and yoy_norm when there are fewer than 24 months.
-    # We'll create 23 months of daily data.
-    n_days = 23 * 30  # 690 days
-    daily_values = [1.0] * n_days
+    start = "2020-01-01"
+    daily_values = [1.0] * (23 * 30)  # 690 days
     articles = {"Article G": daily_values}
-    # We need to adjust the project_monthly to cover 23 months.
-    year, month, _ = map(int, start.split('-'))
     project_monthly_23 = {}
+    year, month, _ = map(int, start.split('-'))
     for i in range(23):
         m = month + i
         y = year + (m - 1) // 12
