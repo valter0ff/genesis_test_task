@@ -1,15 +1,16 @@
 """Report generation."""
 
 import json
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import matplotlib
-
-matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
 from fpdf import FPDF
+
+# Try to import our charts module
+try:
+    from . import charts
+except ImportError:
+    charts = None  # type: ignore
 
 
 def _load_result(work_dir: Path) -> dict[str, Any]:
@@ -22,56 +23,46 @@ def _load_result(work_dir: Path) -> dict[str, Any]:
 
 
 def _generate_chart(work_dir: Path, result: dict[str, Any]) -> Path:
-    """Generate a time-series chart of views and save as PNG.
+    """Generate a time-series chart of normalized monthly views and save as PNG.
+
+    The `result` argument is kept for compatibility with the tests but is not used.
+    Chart data is loaded from the work directory.
 
     Returns the path to the generated chart.
     """
-    # Try to load article views data for plotting
-    article_views_file = work_dir / "article_views.json"
-    if not article_views_file.exists():
-        # Create a dummy chart if data not available
-        fig, ax = plt.subplots(figsize=(10, 6))
-        ax.text(0.5, 0.5, 'No data available for chart',
-                horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes, fontsize=12)
-        ax.set_title('Article Views Over Time')
-    else:
-        with article_views_file.open(encoding="utf-8") as f:
-            article_views = json.load(f)
+    if charts is None:
+        # Fallback: create a simple placeholder chart
+        return _generate_placeholder_chart(work_dir)
 
-        if not article_views:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            ax.text(0.5, 0.5, 'No views data available',
-                    horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes, fontsize=12)
-            ax.set_title('Article Views Over Time')
+    try:
+        chart_result = charts.generate_chart(work_dir)
+        if chart_result.get("ok", False):
+            return Path(chart_result["data"]["chart_path"])
         else:
-            # Extract dates and views
-            dates = [item["date"] for item in article_views]
-            views = [item["views"] for item in article_views]
+            # Chart generation failed, create placeholder
+            return _generate_placeholder_chart(work_dir)
+    except Exception as _exc:  # noqa: BLE001
+        # Fallback to placeholder on any error
+        return _generate_placeholder_chart(work_dir)
 
-            # Convert dates to datetime objects for plotting
-            date_objects = [datetime.strptime(d, "%Y%m%d").replace(tzinfo=UTC) for d in dates]
 
-            fig, ax = plt.subplots(figsize=(10, 6))
-            ax.plot(date_objects, views, marker='o', linestyle='-', linewidth=2, markersize=4)
-            ax.set_xlabel('Date')
-            ax.set_ylabel('Views')
-            ax.set_title('Article Views Over Time')
-            ax.grid(True, linestyle='--', alpha=0.7)
+def _generate_placeholder_chart(work_dir: Path) -> Path:
+    """Generate a placeholder chart when data is unavailable."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
 
-            # Rotate date labels for better readability
-            plt.xticks(rotation=45)
-            plt.tight_layout()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.text(0.5, 0.5, 'Chart data not available',
+            horizontalalignment='center', verticalalignment='center',
+            transform=ax.transAxes, fontsize=12)
+    ax.set_title('Normalized Monthly Views')
 
-    # Ensure charts directory exists
     charts_dir = work_dir / "charts"
     charts_dir.mkdir(exist_ok=True)
-
     chart_path = charts_dir / "chart.png"
     fig.savefig(chart_path, dpi=150, bbox_inches='tight')
     plt.close(fig)
-
     return chart_path
 
 
@@ -83,24 +74,45 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.set_font("helvetica", size=12)
+
+    # Add DejaVuSans font for Cyrillic support
+    font_path = Path(__file__).parent.parent.parent / "assets" / "fonts" / "DejaVuSans.ttf"
+    try:
+        if font_path.exists():
+            pdf.add_font('DejaVu', '', str(font_path), uni=True)
+            pdf.set_font('DejaVu', '', 12)
+        else:
+            pdf.set_font("helvetica", size=12)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", size=12)
 
     # Extract data from result
     data = result.get("data", {})
-    date_range = data.get("date_range", {})
-    raw_views = data.get("raw_views", {})
-    norm_views = data.get("normalized_views", {})
+    metrics = data.get("metrics", {})
+    reliability = data.get("reliability", {})
+    headline = data.get("headline", "No headline available")
 
     # Title
-    pdf.set_font("helvetica", 'B', 16)
+    try:
+        pdf.set_font('DejaVu', '', 16)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", 'B', 16)
     pdf.cell(0, 10, "Wikipedia Interest Analysis Report", ln=True, align='C')
     pdf.ln(5)
 
-    # Verdict and confidence (placeholder)
-    pdf.set_font("helvetica", 'B', 12)
-    pdf.cell(0, 10, "Verdict: Interest detected", ln=True)
-    pdf.set_font("helvetica", size=12)
-    pdf.cell(0, 10, "Confidence: medium", ln=True)
+    # Verdict and confidence
+    try:
+        pdf.set_font('DejaVu', 'B', 12)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", 'B', 12)
+    pdf.cell(0, 10, headline, ln=True)
+
+    confidence = reliability.get("confidence", "unknown")
+    try:
+        pdf.set_font('DejaVu', '', 12)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", size=12)
+    pdf.cell(0, 10, f"Confidence: {confidence}", ln=True)
     pdf.ln(5)
 
     # Chart image
@@ -108,49 +120,72 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     pdf.ln(5)
 
     # Statistics table
-    pdf.set_font("helvetica", 'B', 12)
+    try:
+        pdf.set_font('DejaVu', 'B', 12)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", 'B', 12)
     pdf.cell(0, 10, "Key Metrics:", ln=True)
-    pdf.set_font("helvetica", size=10)
+    try:
+        pdf.set_font('DejaVu', '', 10)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", size=10)
 
     # Create a simple table
-    col_width = 45
+    col_width = 55
     row_height = 8
 
     pdf.cell(col_width, row_height, "Metric", border=1)
     pdf.cell(col_width, row_height, "Value", border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Date Range", border=1)
-    pdf.cell(col_width, row_height,
-             f"{date_range.get('start', 'N/A')} to {date_range.get('end', 'N/A')}",
-             border=1)
+    yoy_norm = metrics.get("yoy_norm")
+    trend = metrics.get("trend_pct_per_year")
+    volume = metrics.get("volume", {})
+    median_daily = volume.get("median_daily_12m", 0.0)
+    total_12m = volume.get("total_12m", 0.0)
+
+    # Format values
+    yoy_str = f"{yoy_norm:.1%}" if yoy_norm is not None else "N/A"
+    trend_str = f"{trend:+.1f}%/year" if trend is not None else "N/A"
+    median_str = f"{median_daily:.1f}" if median_daily is not None else "N/A"
+    total_str = f"{total_12m:,.0f}" if total_12m is not None else "N/A"
+
+    pdf.cell(col_width, row_height, "YoY Change (normalized)", border=1)
+    pdf.cell(col_width, row_height, yoy_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Total Views (raw)", border=1)
-    pdf.cell(col_width, row_height, f"{raw_views.get('total', 0):,.0f}", border=1)
+    pdf.cell(col_width, row_height, "Trend", border=1)
+    pdf.cell(col_width, row_height, trend_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Total Views (normalized)", border=1)
-    pdf.cell(col_width, row_height, f"{norm_views.get('total', 0):,.2f}", border=1)
+    pdf.cell(col_width, row_height, "Median Daily Views (last 12m)", border=1)
+    pdf.cell(col_width, row_height, median_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Avg Daily Views (raw)", border=1)
-    pdf.cell(col_width, row_height, f"{raw_views.get('mean', 0):,.1f}", border=1)
+    pdf.cell(col_width, row_height, "Total Views (last 12m)", border=1)
+    pdf.cell(col_width, row_height, total_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Avg Daily Views (normalized)", border=1)
-    pdf.cell(col_width, row_height, f"{norm_views.get('mean', 0):,.2f}", border=1)
+    pdf.cell(col_width, row_height, "Confidence", border=1)
+    pdf.cell(col_width, row_height, confidence.upper(), border=1)
     pdf.ln(row_height)
 
     # Assumptions and limitations
     pdf.ln(10)
-    pdf.set_font("helvetica", 'B', 12)
+    try:
+        pdf.set_font('DejaVu', 'B', 12)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", 'B', 12)
     pdf.cell(0, 10, "Assumptions and Limitations:", ln=True)
-    pdf.set_font("helvetica", size=10)
+    try:
+        pdf.set_font('DejaVu', '', 10)
+    except Exception as _exc:  # noqa: BLE001
+        pdf.set_font("helvetica", size=10)
+
     limitations = [
         "Interest != willingness to pay",
         "Wikipedia views != app demand",
-        f"Analysis window: {date_range.get('days', 0)} days",
+        "Analysis window: last 24 full months",
         "Normalization uses project views (agent=user)",
         "Charts show trends but not causation"
     ]
@@ -201,10 +236,10 @@ def generate_report(work_dir: Path | str) -> dict[str, Any]:
             "warnings": [str(exc)],
             "next_step": "Run 'wikitrends fetch' and 'wikitrends analyze' first to generate data.",
         }
-    except Exception as exc:  # noqa: BLE001
+    except Exception as _exc:  # noqa: BLE001
         return {
             "ok": False,
             "data": {},
-            "warnings": [f"Unexpected error during report generation: {exc!s}"],
+            "warnings": [f"Unexpected error during report generation: {_exc!s}"],
             "next_step": "Check your work directory and try again.",
         }
