@@ -56,6 +56,14 @@ Commands: `resolve`, `fetch`, `analyze`, `report`, and `run --spec spec.json` (d
 - Cache every response on disk (key = URL). Only the current/incomplete day is not cached forever.
 - Fetch DAILY series (needed for spike detection), aggregate to monthly locally. Use only full months.
 
+## Loop prevention (mandatory, read first)
+- Max 3 attempts per failing test/lint check. On the 3rd failure: stop, write the exact
+  error and your last 2 attempts to STUCK.md, do not retry further, report to the user.
+- Never re-read a file already read in this session unless you just edited it.
+- Never repeat an identical shell command twice in a row.
+- One function/file per work session. Do not jump ahead to the next file until the
+  current one's tests pass or you have stopped per the rule above.
+
 ## Metrics spec (implement exactly, test on synthetic data)
 Per (topic, language): basket = sum of daily views over confirmed articles.
 Normalization: `norm = basket_views / project_total_views * 1e6` (views per million project views) — removes the
