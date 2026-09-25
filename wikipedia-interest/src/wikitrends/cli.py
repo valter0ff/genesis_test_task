@@ -514,27 +514,106 @@ def main() -> None:
                     json.dump(project_items, f, indent=None)
 
                 # Step 2: Analyze the data
+                # Load article views
+                article_file = lang_work_dir / "article_views.json"
+                if not article_file.exists():
+                    all_warnings.append(f"[{lang}] Article views data not found in {article_file}. Run 'wikitrends fetch' first.")
+                    failed_languages.append(lang)
+                    continue
                 try:
-                    from . import analyze
-                    analyze_result = analyze.analyze_data(lang_work_dir)
-                except ImportError as e:
-                    all_warnings.append(f"[{lang}] Failed to import analysis module: {e}")
+                    with article_file.open(encoding="utf-8") as f:
+                        article_data = json.load(f)
+                except json.JSONDecodeError as exc:
+                    all_warnings.append(f"[{lang}] Failed to parse article views data: {exc}")
                     failed_languages.append(lang)
                     continue
-                except (FileNotFoundError, ValueError) as e:
-                    all_warnings.append(f"[{lang}] Analysis failed due to missing/invalid data: {e}")
-                    failed_languages.append(lang)
-                    continue
-                except Exception as e:  # noqa: BLE001
-                    # Broad exception catch intentional to continue processing other languages
-                    all_warnings.append(f"[{lang}] Unexpected error during analysis: {e!s}")
+                article_views = article_data if isinstance(article_data, list) else []
+
+                # Load project views (optional for normalization, but we need it for metrics)
+                project_file = lang_work_dir / "project_views.json"
+                project_views = []
+                project_warnings = []
+                if project_file.exists():
+                    try:
+                        with project_file.open(encoding="utf-8") as f:
+                            project_data = json.load(f)
+                        project_views = project_data if isinstance(project_data, list) else []
+                    except json.JSONDecodeError as exc:
+                        project_warnings.append(f"[{lang}] Failed to parse project views data: {exc}")
+                else:
+                    project_warnings.append(f"[{lang}] Project views data not found. Normalization will be skipped.")
+
+                if not article_views:
+                    all_warnings.append(f"[{lang}] No article views data found.")
                     failed_languages.append(lang)
                     continue
 
-                # Save analysis result
+                # Convert article views to daily views list and start date
+                # Sort by date to ensure chronological order
+                try:
+                    sorted_article = sorted(article_views, key=lambda x: x["date"])
+                except (KeyError, TypeError) as exc:
+                    all_warnings.append(f"[{lang}] Invalid article views data: {exc}")
+                    failed_languages.append(lang)
+                    continue
+
+                # Extract daily views and dates
+                dates = [item["date"] for item in sorted_article]
+                daily_views = [float(item["views"]) for item in sorted_article]
+
+                # Start date in ISO format (YYYY-MM-DD)
+                if dates:
+                    start_date = f"{dates[0][:4]}-{dates[0][4:6]}-{dates[0][6:8]}"
+                else:
+                    start_date = ""
+
+                # Convert project views to monthly dict: { "YYYY-MM": views }
+                project_monthly = {}
+                for item in project_views:
+                    try:
+                        date_str = item["date"]  # YYYYMMDD
+                        month_key = date_str[:6]  # YYYYMM
+                        views = float(item["views"])
+                        project_monthly[month_key] = project_monthly.get(month_key, 0.0) + views
+                    except (KeyError, TypeError, ValueError) as exc:
+                        project_warnings.append(f"[{lang}] Invalid project views data item: {exc}")
+
+                # Prepare articles dict for metrics.analyze_topic: we have one article (the topic)
+                articles = {"article": daily_views}
+
+                # Call metrics.analyze_topic
+                try:
+                    metrics_result = metrics.analyze_topic(articles, start_date, project_monthly)
+                except Exception as exc:  # noqa: BLE001
+                    all_warnings.append(f"[{lang}] Metrics calculation failed: {exc}")
+                    failed_languages.append(lang)
+                    continue
+
+                # Assess reliability
+                try:
+                    reliability_result = reliability.assess(metrics_result, lang="en")
+                    headline = reliability.headline(metrics_result, reliability_result, lang="en")
+                except Exception as exc:  # noqa: BLE001
+                    all_warnings.append(f"[{lang}] Reliability assessment failed: {exc}")
+                    failed_languages.append(lang)
+                    continue
+
+                # Construct the result to return
+                result = {
+                    "ok": True,
+                    "data": {
+                        "metrics": metrics_result,
+                        "reliability": reliability_result,
+                        "headline": headline,
+                    },
+                    "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
+                    "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
+                }
+
+                # Save result to work directory for report step
                 result_file = lang_work_dir / "result.json"
                 with result_file.open("w", encoding="utf-8") as f:
-                    json.dump(analyze_result, f, indent=None)
+                    json.dump(result, f, indent=None)
 
                 # Step 3: Generate report
                 try:
@@ -556,16 +635,16 @@ def main() -> None:
 
                 # Store results for this language
                 language_results[lang] = {
-                    "ok": analyze_result.get("ok", False),
-                    "analysis": analyze_result,
+                    "ok": result.get("ok", False),
+                    "analysis": result,
                     "report": report_result,
                     "work_dir": str(lang_work_dir),
                 }
 
-                if not analyze_result.get("ok", False):
+                if not result.get("ok", False):
                     failed_languages.append(lang)
                     all_warnings.extend([f"[{lang}] Analysis failed: {w}"
-                                       for w in analyze_result.get("warnings", [])])
+                                       for w in result.get("warnings", [])])
                 if not report_result.get("ok", False):
                     failed_languages.append(lang)
                     all_warnings.extend([f"[{lang}] Report generation failed: {w}"
