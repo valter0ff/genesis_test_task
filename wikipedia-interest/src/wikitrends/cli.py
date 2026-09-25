@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from . import api
+from . import api, metrics, reliability
 
 
 def _slug_from_params(project: str, article: str, start: str, end: str) -> str:
@@ -192,32 +192,142 @@ def main() -> None:
                 exit_code=2,
             )
 
+        # Load article views
+        article_file = work_dir / "article_views.json"
+        if not article_file.exists():
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Article views data not found in {article_file}. Run 'wikitrends fetch' first."],
+                next_step="Run 'wikitrends fetch' to generate data.",
+                exit_code=2,
+                work_dir=work_dir,
+            )
         try:
-            from . import analyze
-            result = analyze.analyze_data(work_dir)
-        except ImportError as e:
+            with article_file.open(encoding="utf-8") as f:
+                article_data = json.load(f)
+        except json.JSONDecodeError as exc:
             _print_json_and_exit(
                 ok=False,
                 data=[],
-                warnings=[f"Failed to import analysis module: {e}"],
-                next_step="Check that analyze.py is properly implemented.",
+                warnings=[f"Failed to parse article views data: {exc}"],
+                next_step="Check the article views data in the work directory.",
                 exit_code=3,
+                work_dir=work_dir,
             )
-        except Exception as e:  # noqa: BLE001
+        article_views = article_data if isinstance(article_data, list) else []
+
+        # Load project views (optional for normalization, but we need it for metrics)
+        project_file = work_dir / "project_views.json"
+        project_views = []
+        project_warnings = []
+        if project_file.exists():
+            try:
+                with project_file.open(encoding="utf-8") as f:
+                    project_data = json.load(f)
+                project_views = project_data if isinstance(project_data, list) else []
+            except json.JSONDecodeError as exc:
+                project_warnings.append(f"Failed to parse project views data: {exc}")
+        else:
+            project_warnings.append("Project views data not found. Normalization will be skipped.")
+
+        if not article_views:
             _print_json_and_exit(
                 ok=False,
                 data=[],
-                warnings=[f"Unexpected error during analysis: {e!s}"],
-                next_step="Check your work directory and try again.",
-                exit_code=3,
+                warnings=["No article views data found."],
+                next_step="Check that fetch command completed successfully.",
+                exit_code=2,
+                work_dir=work_dir,
             )
+
+        # Convert article views to daily views list and start date
+        # Sort by date to ensure chronological order
+        try:
+            sorted_article = sorted(article_views, key=lambda x: x["date"])
+        except (KeyError, TypeError) as exc:
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Invalid article views data: {exc}"],
+                next_step="Check the article views data format.",
+                exit_code=3,
+                work_dir=work_dir,
+            )
+
+        # Extract daily views and dates
+        dates = [item["date"] for item in sorted_article]
+        daily_views = [float(item["views"]) for item in sorted_article]
+
+        # Start date in ISO format (YYYY-MM-DD)
+        if dates:
+            start_date = f"{dates[0][:4]}-{dates[0][4:6]}-{dates[0][6:8]}"
+        else:
+            start_date = ""
+
+        # Convert project views to monthly dict: { "YYYY-MM": views }
+        project_monthly = {}
+        for item in project_views:
+            try:
+                date_str = item["date"]  # YYYYMMDD
+                month_key = date_str[:6]  # YYYYMM
+                views = float(item["views"])
+                # If there are multiple entries for the same month, we sum? But the API should give one per month.
+                # We'll assume the data is already monthly and non-duplicate.
+                project_monthly[month_key] = project_monthly.get(month_key, 0.0) + views
+            except (KeyError, TypeError, ValueError) as exc:
+                project_warnings.append(f"Invalid project views data item: {exc}")
+
+        # Prepare articles dict for metrics.analyze_topic: we have one article (the topic)
+        # The function expects a dict mapping article identifier to daily views list.
+        # We'll use a dummy key "article".
+        articles = {"article": daily_views}
+
+        # Call metrics.analyze_topic
+        try:
+            metrics_result = metrics.analyze_topic(articles, start_date, project_monthly)
+        except Exception as exc:  # noqa: BLE001
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Metrics calculation failed: {exc}"],
+                next_step="Check the data and try again.",
+                exit_code=3,
+                work_dir=work_dir,
+            )
+
+        # Assess reliability
+        try:
+            reliability_result = reliability.assess(metrics_result, lang="en")
+            headline = reliability.headline(metrics_result, reliability_result, lang="en")
+        except Exception as exc:  # noqa: BLE001
+            _print_json_and_exit(
+                ok=False,
+                data=[],
+                warnings=[f"Reliability assessment failed: {exc}"],
+                next_step="Check the metrics and try again.",
+                exit_code=3,
+                work_dir=work_dir,
+            )
+
+        # Construct the result to return
+        result = {
+            "ok": True,
+            "data": {
+                "metrics": metrics_result,
+                "reliability": reliability_result,
+                "headline": headline,
+            },
+            "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
+            "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
+        }
 
         # Save result to work directory for report step
         result_file = work_dir / "result.json"
         with result_file.open("w", encoding="utf-8") as f:
             json.dump(result, f, indent=None)
 
-        # Determine exit code based on result
+        # Determine exit code based on result (always ok=True here, but keep for consistency)
         exit_code = 0 if result.get("ok", False) else 1
         _print_json_and_exit(
             ok=result.get("ok", False),
