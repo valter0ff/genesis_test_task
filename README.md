@@ -25,17 +25,15 @@ can also be run directly by a developer.
 
 ## Known limitations (please read before using)
 
-- **No topic-to-article resolution.** The `topic` field in `spec.json` is used
-  *literally* as the Wikipedia article title in every requested language. There is
-  no Wikidata lookup or translation step. If you ask for `"topic": "astronomy"` on
-  `uk.wikipedia`, it will fail, because the Ukrainian article is titled
-  `Астрономія`. **You must supply the exact article title for each language
-  yourself** (open `https://<lang>.wikipedia.org/wiki/<Title>` to check).
-- **Report language is hardcoded to Ukrainian** in the current build (both the
-  `analyze` command and `run` pass `lang="uk"` unconditionally). English report
-  text is not currently reachable through the CLI, even for an English-language
-  topic. Localizing this properly (via a `--lang` flag or a `report_lang` field in
-  `spec.json`) is the top item for the next iteration.
+- **Topic resolution is automatic via Wikidata.** The `topic` field in `spec.json` is
+  looked up on Wikidata to find the corresponding Wikipedia article titles in each
+  requested language. You can optionally provide exact article titles via the
+  `"articles"` field in `spec.json` to override automatic resolution.
+- **Report language is currently Ukrainian** for all languages due to a temporary
+  hardcoding in the reliability assessment step. The report generation infrastructure
+  supports multiple languages, but the CLI currently passes `lang="uk"` unconditionally
+  to the reliability and headline generation steps. This does not affect the computed
+  metrics, which are language-independent.
 - **Only single-article topics are tested end-to-end.** Multi-article "baskets" (a
   topic covered by more than one article) are implemented and unit-tested in
   `metrics.py`, but not exercised through the CLI in a live run.

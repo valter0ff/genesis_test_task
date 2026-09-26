@@ -1,3 +1,8 @@
+# Historical Audit Note
+**This audit reflects an earlier state of the repository and is kept for historical reference only.**
+**Many items marked as missing or partial have since been implemented.**
+**For current status, refer to the actual codebase and test results.**
+
 # Audit of wikipedia-interest skill against PLAN.md and CLAUDE.md
 
 ## Stage 0 — Repo setup

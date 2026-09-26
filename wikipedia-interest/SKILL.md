@@ -72,7 +72,7 @@ The `spec.json` may optionally include an `"articles"` field mapping language co
 ### Metrics Definitions
 - `yoy_norm`: Year-over-year growth of normalized views (views per million project views). Indicates relative interest trend.
 - `trend_pct_per_year`: Theil-Sen slope of monthly normalized series, expressed as % change per year relative to median.
-- `spike_share`: Fraction of total views attributable to daily spikes (>4.8xMAD).
+- `spike_share`: Fraction of total views attributable to daily spikes (robust z-score > 4, where spike magnitude is measured as residual above rolling median baseline).
 - `volume`: Median daily views and total views in the last 12 months.
 - `confidence`: Reliability assessment (high/medium/low) based on automated heuristic flags.
 
