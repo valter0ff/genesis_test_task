@@ -1,7 +1,7 @@
 """Chart generation."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -97,7 +97,7 @@ def generate_chart(work_dir: Path | str) -> dict[str, Any]:
 
                 # Convert month strings to datetime objects for plotting
                 # We'll use the first day of the month for plotting
-                dates_plot = [datetime.strptime(month, "%Y-%m").replace(day=1, tzinfo=timezone.utc)
+                dates_plot = [datetime.strptime(month, "%Y-%m").replace(day=1, tzinfo=UTC)
                               for month in sorted_months]
 
                 # Set up the plot
