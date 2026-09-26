@@ -192,6 +192,11 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     for limitation in limitations:
         pdf.cell(0, 6, f"- {limitation}", ln=True)
 
+    # Add reliability reasons if available
+    reliability_reasons = reliability.get("reasons", [])
+    for reason in reliability_reasons:
+        pdf.cell(0, 6, f"- {reason}", ln=True)
+
     # Save PDF
     report_path = work_dir / "report.pdf"
     pdf.output(str(report_path))
