@@ -31,15 +31,18 @@ Do NOT write custom Python scripts or manually compute metrics. Rely strictly on
 
 Follow these steps to answer user queries about comparative interest. Each step returns a JSON object with `ok`, `data`, `warnings`, and `next_step`. Propagate `warnings` to the user; treat `next_step` as a hint for the subsequent command.
 
-### 1. Topic Resolution (REQUIRED before spec creation)
-Before creating a spec.json, you MUST resolve the user's topic to the exact Wikipedia article titles in each target language:
-- Ask the user: "What is the exact Wikipedia article title for '[topic]' in each of these languages: [list of languages]?"
-- If the user doesn't know, suggest they search Wikipedia directly or use the `wikitrends resolve` command (if available)
-- **Critical**: If a fetch later returns "No data found", you must report this as: "no article titled X found in <lang> Wikipedia, please provide the correct title" rather than silently failing
+### 1. Topic Resolution (HANDLED AUTOMATICALLY in `run --spec`)
+The `run --spec` command automatically resolves the user's topic to Wikipedia article titles using Wikidata:
+- If you know the exact article titles for each language, you can provide them via the optional `"articles"` field in `spec.json` (e.g., `{"uk": "Астрономія", "en": "Astronomy"}`)
+- If `"articles"` is not provided or incomplete, the skill will attempt to resolve the topic via Wikidata search
+- **Note**: If resolution fails (ambiguous, not found, or error), the skill will warn and skip that language
+- **Critical**: If a fetch later returns "No data found" for an article, this typically means the article title doesn't exist in that language's Wikipedia. Report this to the user as: "no article titled X found in <lang> Wikipedia, please provide the correct title" and ask them to provide the exact article title for that language via spec.json's `"articles"` field.
 
 ### 2. One-shot execution (PRIMARY METHOD)
-After resolving article titles for each language, construct a `spec.json` (e.g., topic, languages, window) and execute:
+After resolving article titles for each language (or letting the skill resolve them automatically), construct a `spec.json` (e.g., topic, languages, window) and execute:
 `uv run wikitrends run --spec spec.json`
+
+The `spec.json` may optionally include an `"articles"` field mapping language codes to exact article titles (e.g., `{"uk": "Астрономія", "en": "Astronomy"}`) to override automatic resolution.
 
 - The command runs fetch -> analyze -> report sequentially for each language.
 - Output: JSON containing `work_dir`, `language_results` with pre-calculated analysis and report data, plus `charts_and_reports` with file paths.

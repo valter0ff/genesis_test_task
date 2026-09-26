@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from . import api, metrics, reliability
+from . import api, metrics, reliability, resolve
 
 
 def _slug_from_params(project: str, article: str, start: str, end: str) -> str:
@@ -462,6 +462,31 @@ def main() -> None:
         with spec_file.open("w", encoding="utf-8") as f:
             json.dump(spec, f, indent=2)
 
+        # Resolve topic to article titles for each language
+        # Check for manual overrides in spec.articles first
+        article_overrides = spec.get("articles", {})
+        resolution_results = {}
+        if article_overrides:
+            # If overrides are provided, use them directly and skip resolution
+            for lang in spec["languages"]:
+                if lang in article_overrides:
+                    resolution_results[lang] = {
+                        "status": "found",
+                        "title": article_overrides[lang].replace(" ", "_"),
+                        "description": "Manually overridden from spec.articles"
+                    }
+                else:
+                    # No override for this language, mark as not_found for now
+                    # (will be resolved below if no overrides at all)
+                    resolution_results[lang] = {"status": "not_found"}
+
+        # If no article overrides provided, or if some languages don't have overrides,
+        # run Wikidata resolution for those languages
+        needs_resolution = [lang for lang in spec["languages"]
+                           if lang not in article_overrides or not article_overrides]
+        if needs_resolution:
+            resolution_results.update(resolve.resolve_topic(spec["topic"], needs_resolution))
+
         # Track all warnings and errors
         all_warnings = []
         failed_languages = []
@@ -480,9 +505,34 @@ def main() -> None:
             try:
                 # Step 1: Fetch article views and project views
                 # We need to resolve the topic to article titles for each language
-                # For now, we'll use the topic as the article title (with underscores)
-                # In a full implementation, this would use Wikidata/resolve step
-                article_title = spec["topic"].replace(" ", "_")
+                # Use manual override or Wikidata resolution if available
+                resolution = resolution_results.get(lang, {"status": "not_found"})
+                if resolution["status"] == "found":
+                    article_title = resolution["title"]
+                elif resolution["status"] == "ambiguous":
+                    # Ambiguous match - add warning and skip this language
+                    all_warnings.append(
+                        f"[{lang}] Could not confidently resolve '{spec['topic']}' to a {lang}.wikipedia article: "
+                        f"multiple candidates found. Provide the exact title via spec.json's optional per-language 'articles' override."
+                    )
+                    failed_languages.append(lang)
+                    continue
+                elif resolution["status"] == "not_found":
+                    # Not found - add warning and skip this language
+                    all_warnings.append(
+                        f"[{lang}] Could not confidently resolve '{spec['topic']}' to a {lang}.wikipedia article: "
+                        f"no matching article found. Provide the exact title via spec.json's optional per-language 'articles' override."
+                    )
+                    failed_languages.append(lang)
+                    continue
+                else:  # error status
+                    # Error in resolution - add warning and skip this language
+                    all_warnings.append(
+                        f"[{lang}] Could not confidently resolve '{spec['topic']}' to a {lang}.wikipedia article: "
+                        f"{resolution.get('message', 'Unknown error')}"
+                    )
+                    failed_languages.append(lang)
+                    continue
 
                 # Fetch data
                 article_items, article_warnings = api.get_article_views_daily(
