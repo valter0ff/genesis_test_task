@@ -1,62 +1,66 @@
 # Agent Handoff
 
 ## Current task
-PHASE 1 — Documentation consistency
+PHASE 2 — Statistical correctness
 
 ## Objective
-Bring README.md and SKILL.md in line with the actual current code.
-Do **not** change any program behaviour.
+Align the statistical definitions in code with the intended specification and documentation.
+Focus on three things only:
+1. `spike_share` formula
+2. Spike threshold consistency
+3. Volume window (prefer last 12 full calendar months)
 
 ## Context
-- `resolve.py` is already implemented and wired into `run --spec`.
-- README still claims there is no topic-to-article resolution — this is outdated.
-- SKILL.md mentions spike threshold as `>4.8xMAD`, while the code uses robust z-score `> 4`.
-- Report language is still largely hardcoded to Ukrainian in some places.
-- Multi-language runs currently produce independent reports (no ranking / combined chart yet).
-- `AUDIT.md` is outdated and should be marked historical or removed.
+Current `spike_share` in `metrics.py` is approximately:
+
+    spike_excess / total_views
+
+The intended definition (from the original metrics design) is closer to:
+
+    spike_excess / total_excess_above_baseline
+
+where excess = max(view - baseline, 0).
+
+Spike detection currently uses robust z-score with threshold `> 4` and an extra
+`max(scale, sqrt(baseline))` term. Keep the threshold at 4. Decide whether the
+`sqrt(baseline)` floor is still justified; if kept, it must be clearly reflected
+in tests/docs. Prefer staying close to the simple robust z-score definition unless
+there is a strong reason to keep the floor.
+
+Volume is currently taken from the last 365 days of the daily series.
+Prefer calculating volume from the last 12 **full calendar months** to stay
+consistent with the rest of the monthly logic.
 
 ## Do
-1. Read the current code (especially `resolve.py`, `cli.py` run path, `metrics.py` spike logic, `reliability.py`, `report.py`).
-2. Update `README.md`:
-   - Remove the claim “No topic-to-article resolution”.
-   - Accurately describe automatic Wikidata resolution + optional `articles` override.
-   - Accurately describe current multi-language behaviour (independent reports, no cross-language ranking yet).
-   - Accurately describe report language limitation if it still exists.
-   - Keep the honest limitations section.
-3. Update `wikipedia-interest/SKILL.md`:
-   - Reflect that topic resolution is handled automatically inside `run --spec`.
-   - Fix the spike_share / threshold description so it matches the code (`z > 4`, residual vs baseline).
-   - Keep the agent workflow clear and conservative.
-4. Handle `AUDIT.md`:
-   - Either delete it, or add a clear note at the top that it is historical and no longer reflects current state.
-5. Do **not** change any Python source files.
-6. Do **not** change metrics, reliability, resolve, or CLI behaviour.
+1. Read `src/wikitrends/metrics.py` carefully (especially `find_spikes` and volume calculation).
+2. Fix `spike_share` so the denominator is total excess above baseline, not total views.
+3. Add/adjust unit tests that lock the new definition (include a clear synthetic case where one large spike produces spike_share close to 1.0).
+4. Align volume calculation with “last 12 full calendar months” if that is consistent with existing monthly helpers; otherwise document the actual rule and keep it consistent.
+5. Make sure spike threshold documentation and code agree on `z > 4`.
+6. Run the full test suite and fix any broken tests caused by the definition change.
+7. Do **not** implement report_lang or cross-language comparison.
 
 ## Do not
-- Modify any `.py` files
+- Change resolve logic
+- Change reliability rubric rules (except if a test expectation must follow the new spike_share)
 - Add new features
-- Refactor code
-- Change test expectations
-- Implement report_lang or cross-language comparison (those are later phases)
-- Soften or remove the honest limitations
+- Touch report language or multi-language comparison
+- Swallow failures
 
 ## Acceptance criteria
-1. README no longer claims that topic resolution is missing.
-2. SKILL.md no longer contains the incorrect `4.8xMAD` claim.
-3. Documentation accurately describes:
-   - automatic resolution + `articles` override
-   - current multi-language behaviour
-   - current report language behaviour
-4. No Python files are modified.
-5. Existing tests still pass (`uv run pytest`).
+1. `spike_share` uses excess-above-baseline in the denominator.
+2. Synthetic test exists that demonstrates the corrected behaviour.
+3. Volume window is consistent with the monthly full-month approach (or explicitly justified).
+4. All tests pass.
+5. No unrelated refactors.
 
 ## Files likely involved
-- `README.md`
-- `wikipedia-interest/SKILL.md`
-- `AUDIT.md` (optional cleanup)
+- `src/wikitrends/metrics.py`
+- `tests/test_metrics.py`
+- possibly a short note in README/SKILL if a definition sentence must be adjusted
 
 ## After finishing
-1. Show `git status` and list of changed files.
-2. Show a short summary of what claims were corrected.
-3. Run `uv run pytest -q` and show the summary line.
-4. STOP. Do not start Phase 2.
+1. Show the key diff in `find_spikes` / volume calculation.
+2. Show new or changed tests.
+3. Run `uv run pytest -q` and show the summary.
+4. STOP. Do not start Phase 3.

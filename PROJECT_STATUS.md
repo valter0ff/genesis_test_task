@@ -44,3 +44,13 @@ Phase 1 — Documentation consistency
 4. Documentation (README / SKILL.md) has some outdated claims
 5. `spike_share` definition / threshold may need final alignment
 6. No sample PDF + JSON in `examples/`
+
+## Current phase
+Phase 1 completed → next is Phase 2
+
+## Last completed
+- Phase 0: baseline frozen (41 tests passed)
+- Phase 1: documentation consistency (README, SKILL.md, AUDIT.md)
+
+## Next task
+Phase 2 — Statistical correctness (spike_share + threshold alignment + volume window)
