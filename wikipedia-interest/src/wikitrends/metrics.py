@@ -151,7 +151,7 @@ def find_spikes(daily: list[float]) -> tuple[list[bool], list[float], float]:
     Returns:
         flags: list of booleans, True for spike days.
         baseline: list of floats, the rolling median baseline for each day.
-        spike_share: fraction of total views that come from spike days (above baseline).
+        spike_share: fraction of excess views above baseline that come from spike days.
     """
     from statistics import median
 
@@ -175,9 +175,10 @@ def find_spikes(daily: list[float]) -> tuple[list[bool], list[float], float]:
     effective_scale = [max(scale, math.sqrt(max(b, 1))) for b in baseline]
     flags = [residuals[i] / effective_scale[i] > 4 for i in range(n)]
 
-    spike_views = sum(daily[i] - baseline[i] for i in range(n) if flags[i])
-    total_views = sum(daily)
-    spike_share = spike_views / total_views if total_views != 0 else 0.0
+    # Calculate spike share as excess from spike days divided by total excess above baseline
+    spike_excess = sum(max(daily[i] - baseline[i], 0) for i in range(n) if flags[i])
+    total_excess_above_baseline = sum(max(daily[i] - baseline[i], 0) for i in range(n))
+    spike_share = spike_excess / total_excess_above_baseline if total_excess_above_baseline != 0 else 0.0
     return flags, baseline, spike_share
 
 
@@ -228,20 +229,65 @@ def analyze_topic(articles: dict[str, list[float]], start: str, project_monthly:
 
     spike_days = sum(1 for f in flags if f)
 
-    if n_days >= 365:
-        last_365 = basket_daily[-365:]
-    else:
-        last_365 = basket_daily[:]
+    # Calculate volume based on last 12 full calendar months
+    # Get sorted list of months that have data
+    sorted_months = sorted(basket_monthly.keys())
 
-    total_12m = sum(last_365)
-    sorted_last_365 = sorted(last_365)
-    n_last = len(sorted_last_365)
-    if n_last == 0:
-        median_daily_12m = 0.0
-    elif n_last % 2 == 1:
-        median_daily_12m = sorted_last_365[n_last // 2]
+    # Take the last 12 full calendar months (or as many as we have)
+    if len(sorted_months) >= 12:
+        last_months = sorted_months[-12:]
     else:
-        median_daily_12m = (sorted_last_365[n_last // 2 - 1] + sorted_last_365[n_last // 2]) / 2.0
+        last_months = sorted_months[:]
+
+    # Calculate total views over these months
+    total_12m = sum(basket_monthly[m] for m in last_months)
+
+    # Calculate median daily views over these months
+    # To do this precisely, we need to extract the daily values for these months
+    if last_months:
+        # Convert month strings to date ranges to find corresponding daily indices
+        from datetime import date, timedelta
+
+        start_date = date.fromisoformat(start)
+
+        # Find the date range covered by last_months
+        # First, find the earliest month
+        earliest_month_str = min(last_months)
+        earliest_year, earliest_month = map(int, earliest_month_str.split('-'))
+        earliest_date = date(earliest_year, earliest_month, 1)
+
+        # Find the latest month
+        latest_month_str = max(last_months)
+        latest_year, latest_month = map(int, latest_month_str.split('-'))
+        if latest_month == 12:
+            latest_date = date(latest_year + 1, 1, 1) - timedelta(days=1)  # Last day of month
+        else:
+            latest_date = date(latest_year, latest_month + 1, 1) - timedelta(days=1)  # Last day of month
+
+        # Calculate start and end indices in basket_daily
+        delta_start = earliest_date - start_date
+        delta_end = latest_date - start_date
+        start_idx = max(0, delta_start.days)
+        end_idx = min(len(basket_daily) - 1, delta_end.days)
+
+        if end_idx >= start_idx:
+            # Extract daily values for the date range
+            daily_values_for_period = basket_daily[start_idx:end_idx + 1]
+            sorted_daily_values = sorted(daily_values_for_period)
+            n_values = len(sorted_daily_values)
+            if n_values == 0:
+                median_daily_12m = 0.0
+            elif n_values % 2 == 1:
+                median_daily_12m = sorted_daily_values[n_values // 2]
+            else:
+                median_daily_12m = (sorted_daily_values[n_values // 2 - 1] + sorted_daily_values[n_values // 2]) / 2.0
+        else:
+            # Fallback if date calculation goes wrong
+            median_daily_12m = 0.0
+    else:
+        # No data
+        total_12m = 0.0
+        median_daily_12m = 0.0
 
     first_seen_idx = None
     for i, value in enumerate(basket_daily):

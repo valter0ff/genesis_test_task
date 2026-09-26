@@ -129,9 +129,12 @@ def test_find_spikes():
     # Then residual/effective_scale = 99.0 > 4 -> flagged.
     # So the spike is flagged.
 
-    # Now, spike_share: (daily[15] - baseline[15]) / sum(daily) = 99.0 / (30*1 + 99) = 99.0 / 129.0 ≈ 0.767
+    # Now, spike_share: excess from spike days divided by total excess above baseline.
+    # Spike excess = max(100.0 - 1.0, 0) = 99.0
+    # Total excess above baseline = sum(max(daily[i] - baseline[i], 0) for all i) = 99.0 (only day 15 has excess)
+    # So spike_share = 99.0 / 99.0 = 1.0
     # We'll allow some tolerance.
-    assert abs(spike_share - 99.0/129.0) < 1e-9
+    assert abs(spike_share - 1.0) < 1e-9
 
     # Test no spikes: flat series.
     daily = [5.0] * 100
