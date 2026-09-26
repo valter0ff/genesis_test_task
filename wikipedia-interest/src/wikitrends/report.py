@@ -80,6 +80,7 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     try:
         if font_path.exists():
             pdf.add_font('DejaVu', '', str(font_path), uni=True)
+            pdf.add_font('DejaVu', 'B', str(font_path), uni=True)
             pdf.set_font('DejaVu', '', 12)
         else:
             pdf.set_font("helvetica", size=12)
