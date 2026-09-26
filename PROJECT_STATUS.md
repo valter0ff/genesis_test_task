@@ -8,7 +8,7 @@ Wikipedia Interest Agent Skill is functionally working end-to-end
 before it can be considered submission-ready.
 
 ## Current phase
-**Phase 0 — Freeze baseline** (not started)
+**Phase 0 — Freeze baseline** (completed)
 
 ## Last completed
 - Implemented `resolve.py` (Wikidata sitelinks + manual override via `spec.articles`)
@@ -22,10 +22,10 @@ before it can be considered submission-ready.
 Nothing (awaiting Phase 0)
 
 ## Next task
-Phase 0: Freeze baseline (tests + one live CLI run + commit)
+Phase 1 — Documentation consistency
 
 ## Validation (last known)
-- Unit tests: ~41–47 passed (exact number to be confirmed in Phase 0)
+- Unit tests: 41 passed
 - Live run: astronomy / uk.wikipedia → low confidence (window_short + low_daily_volume)
 - Numbers roughly consistent with pageviews.wmcloud.org
 
