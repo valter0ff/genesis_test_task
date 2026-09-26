@@ -1,5 +1,10 @@
 {
-  "topic": "astronomy",
-  "languages": ["uk"],
-  "window": ["20240901", "20260801"]
+  "topic": "Астрономія",
+  "languages": [
+    "uk"
+  ],
+  "window": [
+    "20240901",
+    "20260801"
+  ]
 }

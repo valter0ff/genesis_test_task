@@ -55,6 +55,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+pypdf_temp/
 
 # Spyder project settings
 .spyderproject

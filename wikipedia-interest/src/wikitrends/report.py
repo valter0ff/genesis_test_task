@@ -174,11 +174,12 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
         pdf.set_font("helvetica", size=10)
 
     # Create a simple table
-    col_width = 55
+    label_width = 100
+    value_width = 45
     row_height = 8
 
-    pdf.cell(col_width, row_height, "Metric", border=1)
-    pdf.cell(col_width, row_height, "Value", border=1)
+    pdf.cell(label_width, row_height, "Metric", border=1)
+    pdf.cell(value_width, row_height, "Value", border=1)
     pdf.ln(row_height)
 
     yoy_norm = metrics.get("yoy_norm")
@@ -193,24 +194,24 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     median_str = f"{median_daily:.1f}" if median_daily is not None else "N/A"
     total_str = f"{total_12m:,.0f}" if total_12m is not None else "N/A"
 
-    pdf.cell(col_width, row_height, labels["yoy_change"], border=1)
-    pdf.cell(col_width, row_height, yoy_str, border=1)
+    pdf.cell(label_width, row_height, labels["yoy_change"], border=1)
+    pdf.cell(value_width, row_height, yoy_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, labels["trend"], border=1)
-    pdf.cell(col_width, row_height, trend_str, border=1)
+    pdf.cell(label_width, row_height, labels["trend"], border=1)
+    pdf.cell(value_width, row_height, trend_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, labels["median_daily"], border=1)
-    pdf.cell(col_width, row_height, median_str, border=1)
+    pdf.cell(label_width, row_height, labels["median_daily"], border=1)
+    pdf.cell(value_width, row_height, median_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, labels["total_views"], border=1)
-    pdf.cell(col_width, row_height, total_str, border=1)
+    pdf.cell(label_width, row_height, labels["total_views"], border=1)
+    pdf.cell(value_width, row_height, total_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, labels["confidence"], border=1)
-    pdf.cell(col_width, row_height, confidence.upper(), border=1)
+    pdf.cell(label_width, row_height, labels["confidence"], border=1)
+    pdf.cell(value_width, row_height, confidence.upper(), border=1)
     pdf.ln(row_height)
 
     # Assumptions and limitations
