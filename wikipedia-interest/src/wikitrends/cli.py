@@ -57,7 +57,7 @@ def _print_json_and_exit(
         "warnings": warnings,
         "next_step": next_step,
     }
-    print(json.dumps(response, indent=None))
+    print(json.dumps(response, indent=None, ensure_ascii=False))
     sys.exit(exit_code)
 
 
@@ -298,8 +298,8 @@ def main() -> None:
 
         # Assess reliability
         try:
-            reliability_result = reliability.assess(metrics_result, lang="en")
-            headline = reliability.headline(metrics_result, reliability_result, lang="en")
+            reliability_result = reliability.assess(metrics_result, lang="uk")
+            headline = reliability.headline(metrics_result, reliability_result, lang="uk")
         except Exception as exc:  # noqa: BLE001
             _print_json_and_exit(
                 ok=False,
@@ -591,8 +591,8 @@ def main() -> None:
 
                 # Assess reliability
                 try:
-                    reliability_result = reliability.assess(metrics_result, lang="en")
-                    headline = reliability.headline(metrics_result, reliability_result, lang="en")
+                    reliability_result = reliability.assess(metrics_result, lang="uk")
+                    headline = reliability.headline(metrics_result, reliability_result, lang="uk")
                 except Exception as exc:  # noqa: BLE001
                     all_warnings.append(f"[{lang}] Reliability assessment failed: {exc}")
                     failed_languages.append(lang)
