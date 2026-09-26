@@ -31,8 +31,14 @@ Do NOT write custom Python scripts or manually compute metrics. Rely strictly on
 
 Follow these steps to answer user queries about comparative interest. Each step returns a JSON object with `ok`, `data`, `warnings`, and `next_step`. Propagate `warnings` to the user; treat `next_step` as a hint for the subsequent command.
 
-### 1. One-shot execution (PRIMARY METHOD)
-To handle queries in a single step, construct a `spec.json` (e.g., topic, languages, window) and execute:
+### 1. Topic Resolution (REQUIRED before spec creation)
+Before creating a spec.json, you MUST resolve the user's topic to the exact Wikipedia article titles in each target language:
+- Ask the user: "What is the exact Wikipedia article title for '[topic]' in each of these languages: [list of languages]?"
+- If the user doesn't know, suggest they search Wikipedia directly or use the `wikitrends resolve` command (if available)
+- **Critical**: If a fetch later returns "No data found", you must report this as: "no article titled X found in <lang> Wikipedia, please provide the correct title" rather than silently failing
+
+### 2. One-shot execution (PRIMARY METHOD)
+After resolving article titles for each language, construct a `spec.json` (e.g., topic, languages, window) and execute:
 `uv run wikitrends run --spec spec.json`
 
 - The command runs fetch -> analyze -> report sequentially for each language.
@@ -82,6 +88,8 @@ Exit codes:
 - 0: Success
 - 2: Bad input (invalid date, missing parameters)
 - 3: Data/API problem (network error, persistent 429/5xx)
+
+**Special case for missing articles**: If the fetch command returns data showing "No data found" for an article, this typically means the article title doesn't exist in that language's Wikipedia. Report this to the user as: "no article titled X found in <lang> Wikipedia, please provide the correct title" and ask them to provide the exact article title for that language.
 
 ## Limitations
 - Wikipedia interest != willingness to pay or product usage.
