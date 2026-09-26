@@ -12,6 +12,44 @@ try:
 except ImportError:
     charts = None  # type: ignore
 
+# Localization labels
+LABELS = {
+    "en": {
+        "title": "Wikipedia Interest Analysis Report",
+        "confidence": "Confidence",
+        "key_metrics": "Key Metrics:",
+        "yoy_change": "YoY Change (normalized)",
+        "trend": "Trend",
+        "median_daily": "Median Daily Views (last 12m)",
+        "total_views": "Total Views (last 12m)",
+        "assumptions": "Assumptions and Limitations:",
+        "limitations": [
+            "Interest != willingness to pay",
+            "Wikipedia views != app demand",
+            "Analysis window: last 24 full months",
+            "Normalization uses project views (agent=user)",
+            "Charts show trends but not causation"
+        ]
+    },
+    "uk": {
+        "title": "Звіт про аналіз інтересу у Вікіпедії",
+        "confidence": "Надійність",
+        "key_metrics": "Ключові метрики:",
+        "yoy_change": "Річна зміна (нормалізована)",
+        "trend": "Тренд",
+        "median_daily": "Медіанні перегляди на день (останні 12 міс.)",
+        "total_views": "Всього переглядів (останні 12 міс.)",
+        "assumptions": "Припущення та обмеження:",
+        "limitations": [
+            "Інтерес не дорівнює готовності платити",
+            "Перегляди Вікіпедії не дорівнюють попиту на застосунок",
+            "Вікно аналізу: останні 24 повні місяці",
+            "Нормалізація використовує перегляди проєкту (agent=user)",
+            "Графіки показують тенденції, але не причинно-наслідкові зв'язки"
+        ]
+    }
+}
+
 
 def _load_result(work_dir: Path) -> dict[str, Any]:
     """Load analysis result from work directory."""
@@ -93,12 +131,16 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     reliability = data.get("reliability", {})
     headline = data.get("headline", "No headline available")
 
+    # Get language for localization (default to English)
+    lang = data.get("lang", "en")
+    labels = LABELS.get(lang, LABELS["en"])
+
     # Title
     try:
         pdf.set_font('DejaVu', '', 16)
     except Exception as _exc:  # noqa: BLE001
         pdf.set_font("helvetica", 'B', 16)
-    pdf.cell(0, 10, "Wikipedia Interest Analysis Report", ln=True, align='C')
+    pdf.cell(0, 10, labels["title"], ln=True, align='C')
     pdf.ln(5)
 
     # Verdict and confidence
@@ -113,7 +155,7 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
         pdf.set_font('DejaVu', '', 12)
     except Exception as _exc:  # noqa: BLE001
         pdf.set_font("helvetica", size=12)
-    pdf.cell(0, 10, f"Confidence: {confidence}", ln=True)
+    pdf.cell(0, 10, f"{labels['confidence']}: {confidence}", ln=True)
     pdf.ln(5)
 
     # Chart image
@@ -125,7 +167,7 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
         pdf.set_font('DejaVu', 'B', 12)
     except Exception as _exc:  # noqa: BLE001
         pdf.set_font("helvetica", 'B', 12)
-    pdf.cell(0, 10, "Key Metrics:", ln=True)
+    pdf.cell(0, 10, labels["key_metrics"], ln=True)
     try:
         pdf.set_font('DejaVu', '', 10)
     except Exception as _exc:  # noqa: BLE001
@@ -151,23 +193,23 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     median_str = f"{median_daily:.1f}" if median_daily is not None else "N/A"
     total_str = f"{total_12m:,.0f}" if total_12m is not None else "N/A"
 
-    pdf.cell(col_width, row_height, "YoY Change (normalized)", border=1)
+    pdf.cell(col_width, row_height, labels["yoy_change"], border=1)
     pdf.cell(col_width, row_height, yoy_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Trend", border=1)
+    pdf.cell(col_width, row_height, labels["trend"], border=1)
     pdf.cell(col_width, row_height, trend_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Median Daily Views (last 12m)", border=1)
+    pdf.cell(col_width, row_height, labels["median_daily"], border=1)
     pdf.cell(col_width, row_height, median_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Total Views (last 12m)", border=1)
+    pdf.cell(col_width, row_height, labels["total_views"], border=1)
     pdf.cell(col_width, row_height, total_str, border=1)
     pdf.ln(row_height)
 
-    pdf.cell(col_width, row_height, "Confidence", border=1)
+    pdf.cell(col_width, row_height, labels["confidence"], border=1)
     pdf.cell(col_width, row_height, confidence.upper(), border=1)
     pdf.ln(row_height)
 
@@ -177,20 +219,13 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
         pdf.set_font('DejaVu', 'B', 12)
     except Exception as _exc:  # noqa: BLE001
         pdf.set_font("helvetica", 'B', 12)
-    pdf.cell(0, 10, "Assumptions and Limitations:", ln=True)
+    pdf.cell(0, 10, labels["assumptions"], ln=True)
     try:
         pdf.set_font('DejaVu', '', 10)
     except Exception as _exc:  # noqa: BLE001
         pdf.set_font("helvetica", size=10)
 
-    limitations = [
-        "Interest != willingness to pay",
-        "Wikipedia views != app demand",
-        "Analysis window: last 24 full months",
-        "Normalization uses project views (agent=user)",
-        "Charts show trends but not causation"
-    ]
-    for limitation in limitations:
+    for limitation in labels["limitations"]:
         pdf.cell(0, 6, f"- {limitation}", ln=True)
 
     # Add reliability reasons if available

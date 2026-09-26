@@ -317,6 +317,7 @@ def main() -> None:
                 "metrics": metrics_result,
                 "reliability": reliability_result,
                 "headline": headline,
+                "lang": "uk",
             },
             "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
             "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
@@ -605,6 +606,7 @@ def main() -> None:
                         "metrics": metrics_result,
                         "reliability": reliability_result,
                         "headline": headline,
+                        "lang": "uk",
                     },
                     "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
                     "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
