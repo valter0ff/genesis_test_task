@@ -159,7 +159,7 @@ def _generate_pdf(work_dir: Path, result: dict[str, Any], chart_path: Path) -> P
     pdf.ln(5)
 
     # Chart image
-    pdf.image(str(chart_path), x=15, w=180)
+    pdf.image(str(chart_path), x=15, w=140)
     pdf.ln(5)
 
     # Statistics table
