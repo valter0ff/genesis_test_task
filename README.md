@@ -15,6 +15,15 @@ up automatically — no further configuration needed:
 ln -s /path/to/wikipedia-interest /your/project/.claude/skills/wikipedia-interest
 ```
 
+(The Agent Skills convention — auto-discovering a `SKILL.md` in a skills
+directory — is specific to Claude Code / claude.ai; other AI products don't
+scan for skills this way. Nothing in `SKILL.md`'s content is Claude-specific,
+so a different tool-calling agent could in principle be given its instructions
+manually, but this hasn't been tested. The "works on a cheap/fast model"
+requirement was verified by swapping the underlying model — not the agent
+harness — running free-tier models like NVIDIA Nemotron through Claude Code
+via a local proxy.)
+
 Once installed, you don't run any commands yourself — you talk to the agent in
 plain language, for example:
 
