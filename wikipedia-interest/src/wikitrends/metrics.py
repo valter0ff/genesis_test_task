@@ -151,7 +151,7 @@ def find_spikes(daily: list[float]) -> tuple[list[bool], list[float], float]:
     Returns:
         flags: list of booleans, True for spike days.
         baseline: list of floats, the rolling median baseline for each day.
-        spike_share: fraction of excess views above baseline that come from spike days.
+        spike_share: fraction of total views that come from excess on spike days.
     """
     from statistics import median
 
@@ -175,10 +175,10 @@ def find_spikes(daily: list[float]) -> tuple[list[bool], list[float], float]:
     effective_scale = [max(scale, math.sqrt(max(b, 1))) for b in baseline]
     flags = [residuals[i] / effective_scale[i] > 4 for i in range(n)]
 
-    # Calculate spike share as excess from spike days divided by total excess above baseline
-    spike_excess = sum(max(daily[i] - baseline[i], 0) for i in range(n) if flags[i])
-    total_excess_above_baseline = sum(max(daily[i] - baseline[i], 0) for i in range(n))
-    spike_share = spike_excess / total_excess_above_baseline if total_excess_above_baseline != 0 else 0.0
+    # Calculate spike share as excess from spike days divided by total views
+    spike_excess = sum(daily[i] - baseline[i] for i in range(n) if flags[i])
+    total_views = sum(daily)
+    spike_share = spike_excess / total_views if total_views != 0 else 0.0
     return flags, baseline, spike_share
 
 

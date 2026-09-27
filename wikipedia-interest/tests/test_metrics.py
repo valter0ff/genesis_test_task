@@ -129,12 +129,12 @@ def test_find_spikes():
     # Then residual/effective_scale = 99.0 > 4 -> flagged.
     # So the spike is flagged.
 
-    # Now, spike_share: excess from spike days divided by total excess above baseline.
-    # Spike excess = max(100.0 - 1.0, 0) = 99.0
-    # Total excess above baseline = sum(max(daily[i] - baseline[i], 0) for all i) = 99.0 (only day 15 has excess)
-    # So spike_share = 99.0 / 99.0 = 1.0
+    # Now, spike_share: excess from spike days divided by total views.
+    # Spike excess = (100.0 - 1.0) = 99.0
+    # Total views = sum(daily) = 30*1.0 + 99.0 = 129.0
+    # So spike_share = 99.0 / 129.0 ≈ 0.767
     # We'll allow some tolerance.
-    assert abs(spike_share - 1.0) < 1e-9
+    assert abs(spike_share - 99.0/129.0) < 1e-9
 
     # Test no spikes: flat series.
     daily = [5.0] * 100
@@ -352,3 +352,25 @@ def test_short_window_yoy_is_none():
     result = analyze_topic(articles, start, project_monthly_23)
     assert result["yoy_raw"] is None
     assert result["yoy_norm"] is None
+
+
+def test_spike_share_with_gaussian_noise_and_few_spikes():
+    """Test spike_share with realistic Gaussian noise and a few spikes -> spike_share < 0.3."""
+    import random
+    random.seed(42)  # for reproducibility
+
+    # Generate 2 years of daily data with Gaussian noise (mean=100, std=10)
+    n_days = 731
+    daily = [random.gauss(100, 10) for _ in range(n_days)]
+    # Ensure no negative values (views cannot be negative)
+    daily = [max(0, val) for val in daily]
+
+    # Add 3 spikes: on days 100, 200, 300, add 500 to the value
+    spike_days = [100, 200, 300]
+    for day in spike_days:
+        daily[day] += 500.0
+
+    _, _, spike_share = find_spikes(daily)
+
+    # We expect the spike_share to be well under 0.3 because the spikes are few and the noise is high.
+    assert spike_share < 0.3, f"Expected spike_share < 0.3, got {spike_share}"
