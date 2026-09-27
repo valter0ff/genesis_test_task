@@ -1,66 +1,76 @@
 # Agent Handoff
 
 ## Current task
-PHASE 2 — Statistical correctness
+PHASE 3 — Report language parameter
 
 ## Objective
-Align the statistical definitions in code with the intended specification and documentation.
-Focus on three things only:
-1. `spike_share` formula
-2. Spike threshold consistency
-3. Volume window (prefer last 12 full calendar months)
+Stop hard-coding Ukrainian as the report language.
+Make report language configurable via `spec.json` and pass it through the pipeline.
 
 ## Context
-Current `spike_share` in `metrics.py` is approximately:
-
-    spike_excess / total_views
-
-The intended definition (from the original metrics design) is closer to:
-
-    spike_excess / total_excess_above_baseline
-
-where excess = max(view - baseline, 0).
-
-Spike detection currently uses robust z-score with threshold `> 4` and an extra
-`max(scale, sqrt(baseline))` term. Keep the threshold at 4. Decide whether the
-`sqrt(baseline)` floor is still justified; if kept, it must be clearly reflected
-in tests/docs. Prefer staying close to the simple robust z-score definition unless
-there is a strong reason to keep the floor.
-
-Volume is currently taken from the last 365 days of the daily series.
-Prefer calculating volume from the last 12 **full calendar months** to stay
-consistent with the rest of the monthly logic.
+- `reliability.py` already supports `lang` (`en` / `uk`) for reasons and headlines.
+- `report.py` already has label dictionaries for `en` and `uk`.
+- The problem is mainly in the orchestration path: `analyze` / `run` currently force `lang="uk"` in places.
+- SKILL.md promises that the skill should match the user's language when possible.
 
 ## Do
-1. Read `src/wikitrends/metrics.py` carefully (especially `find_spikes` and volume calculation).
-2. Fix `spike_share` so the denominator is total excess above baseline, not total views.
-3. Add/adjust unit tests that lock the new definition (include a clear synthetic case where one large spike produces spike_share close to 1.0).
-4. Align volume calculation with “last 12 full calendar months” if that is consistent with existing monthly helpers; otherwise document the actual rule and keep it consistent.
-5. Make sure spike threshold documentation and code agree on `z > 4`.
-6. Run the full test suite and fix any broken tests caused by the definition change.
-7. Do **not** implement report_lang or cross-language comparison.
+
+1. Add optional field to `spec.json`:
+
+   ```json
+   {
+     "report_lang": "en"
+   }
+   ```
+
+   Supported values for now: `"en"` and `"uk"`.
+
+2. Wire `report_lang` through:
+   - `run --spec`
+   - `analyze` (when called from `run`, and ideally when called standalone if feasible)
+   - reliability assessment (`assess` / headline)
+   - PDF report generation
+
+3. Default behaviour when `report_lang` is missing:
+   - Prefer a sensible default (for example `"en"`, or infer from the first requested language if it is `uk`/`en`).
+   - Document the chosen default clearly.
+
+4. Ensure:
+   - `report_lang: "en"` → English headline, reasons, table labels
+   - `report_lang: "uk"` → Ukrainian headline, reasons, table labels
+
+5. Update `SKILL.md` to document the new `report_lang` field.
+6. Add or adjust tests if there is a clean place to lock the behaviour (even a small unit/integration style check is enough).
+7. Keep single-language behaviour backward-compatible when the field is omitted.
 
 ## Do not
-- Change resolve logic
-- Change reliability rubric rules (except if a test expectation must follow the new spike_share)
-- Add new features
-- Touch report language or multi-language comparison
-- Swallow failures
+
+- Implement cross-language comparison (Phase 4)
+- Redesign the whole CLI
+- Add full i18n framework or many new languages
+- Change metrics formulas
+- Break existing JSON schema in a non-additive way
 
 ## Acceptance criteria
-1. `spike_share` uses excess-above-baseline in the denominator.
-2. Synthetic test exists that demonstrates the corrected behaviour.
-3. Volume window is consistent with the monthly full-month approach (or explicitly justified).
-4. All tests pass.
-5. No unrelated refactors.
+
+- `spec.json` can contain `"report_lang": "en"` or `"report_lang": "uk"`.
+- English request path produces English report text.
+- Ukrainian path still works.
+- When `report_lang` is omitted, behaviour is defined and documented.
+- Existing tests still pass.
+- `SKILL.md` mentions the new field.
 
 ## Files likely involved
-- `src/wikitrends/metrics.py`
-- `tests/test_metrics.py`
-- possibly a short note in README/SKILL if a definition sentence must be adjusted
+
+- `src/wikitrends/cli.py`
+- `src/wikitrends/reliability.py` (already mostly ready)
+- `src/wikitrends/report.py`
+- `wikipedia-interest/SKILL.md`
+- possibly a small test file
 
 ## After finishing
-1. Show the key diff in `find_spikes` / volume calculation.
-2. Show new or changed tests.
+
+1. Show the key diffs (especially where `lang="uk"` was previously hardcoded).
+2. Show how `report_lang` flows from `spec` → `analyze` / `report`.
 3. Run `uv run pytest -q` and show the summary.
-4. STOP. Do not start Phase 3.
+4. Stop. Do not start Phase 4.
