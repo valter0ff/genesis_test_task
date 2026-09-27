@@ -20,7 +20,7 @@ All commands return JSON with `work_dir` field indicating the working directory 
 
 ## Execution Control & Termination (CRITICAL FOR ALL AGENTS)
 
-1. **One-Shot Preferred**: ALWAYS prefer running `uv run wikitrends run --spec spec.json` for full analysis workflows.
+1. **One-Shot Preferred**: ALWAYS prefer running `uv run wikitrends run --spec /absolute/path/to/spec.json` for full analysis workflows, with the spec.json file created in your current working directory (wherever you are chatting from, NOT inside the wikipedia-interest/ skill directory).
 2. **NO Code Reading / Inspection**: Do NOT inspect source code (`grep`, `find`, `cat`), do NOT read internal Python modules, and do NOT attempt to reverse-engineer formula calculations. All metrics are pre-calculated by the CLI.
 3. **STOP Immediately After Success**: Once `wikitrends` returns JSON with `"ok": true` and the PDF report path, **STOP executing commands immediately**.
 4. **Immediate Synthesis**: Formulate your final response directly from the CLI's returned JSON output and point the user to `report.pdf`.
@@ -39,8 +39,10 @@ The `run --spec` command automatically resolves the user's topic to Wikipedia ar
 - **Critical**: If a fetch later returns "No data found" for an article, this typically means the article title doesn't exist in that language's Wikipedia. Report this to the user as: "no article titled X found in <lang> Wikipedia, please provide the correct title" and ask them to provide the exact article title for that language via spec.json's `"articles"` field.
 
 ### 2. One-shot execution (PRIMARY METHOD)
-After resolving article titles for each language (or letting the skill resolve them automatically), construct a `spec.json` (e.g., topic, languages, window) and execute:
-`uv run wikitrends run --spec spec.json`
+After resolving article titles for each language (or letting the skill resolve them automatically), construct a `spec.json` (e.g., topic, languages, window) **in your current working directory** (wherever you are chatting from, NOT inside the wikipedia-interest/ skill directory) and execute:
+`uv run wikitrends run --spec /absolute/path/to/spec.json`
+
+**Never write spec.json (or any other file) inside the skill's own directory — it may be a symlink into a git repository.**
 
 The `spec.json` may optionally include an `"articles"` field mapping language codes to exact article titles (e.g., `{"uk": "Астрономія", "en": "Astronomy"}`) to override automatic resolution.
 The `spec.json` may also optionally include a `"report_lang"` field with value `"en"` or `"uk"` to specify the language of the generated report (defaults to `"en"` if omitted).
