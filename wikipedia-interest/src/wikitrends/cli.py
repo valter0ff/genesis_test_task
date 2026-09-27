@@ -465,7 +465,7 @@ def main() -> None:
             # Using the first language and creating a representative slug
             lang_rep = spec["languages"][0] if spec["languages"] else "multi"
             topic_slug = spec["topic"].lower().replace(" ", "_")
-            work_dir = Path.cwd() / "work" / f"{topic_slug}_{lang_rep}_{start_date}_{end_date}"
+            work_dir = spec_path.parent / "work" / f"{topic_slug}_{lang_rep}_{start_date}_{end_date}"
 
         work_dir.mkdir(parents=True, exist_ok=True)
 
