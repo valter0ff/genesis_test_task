@@ -25,12 +25,12 @@ def _get_work_dir(args: argparse.Namespace) -> Path:
     return Path.cwd() / "work" / slug
 
 
-def _validate_date(date_str: str) -> bool:
+def _validate_date(date_str) -> bool:
     """Validate that date_str is in YYYYMMDD format and a valid date."""
     try:
-        datetime.strptime(date_str, "%Y%m%d").replace(tzinfo=UTC)
+        datetime.strptime(str(date_str), "%Y%m%d").replace(tzinfo=UTC)
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
 
 
