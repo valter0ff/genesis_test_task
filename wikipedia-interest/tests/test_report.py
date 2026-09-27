@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+
 from wikitrends import report
 
 # Minimal 1x1 black pixel PNG (base64 decoded)
