@@ -13,7 +13,7 @@ description: Analyze Wikipedia pageviews across languages to judge interest in a
 - Assessing the reliability of observed trends (e.g., distinguishing genuine interest spikes from noise).
 - Generating shareable reports to inform localization or content investment decisions.
 
-**Language Constraint**: Always match the language of the user's prompt in the final summary and recommendations (e.g., if user asks in Ukrainian, reply in Ukrainian).
+**Language Constraint**: Always match the language of the user's prompt in the final summary and recommendations (e.g.,
 
 **CLI entry point**: `wikitrends` (run from the skill directory: `cd wikipedia-interest && uv run wikitrends <cmd>`).
 All commands return JSON with `work_dir` field indicating the working directory used.
@@ -43,6 +43,7 @@ After resolving article titles for each language (or letting the skill resolve t
 `uv run wikitrends run --spec spec.json`
 
 The `spec.json` may optionally include an `"articles"` field mapping language codes to exact article titles (e.g., `{"uk": "Астрономія", "en": "Astronomy"}`) to override automatic resolution.
+The `spec.json` may also optionally include a `"report_lang"` field with value `"en"` or `"uk"` to specify the language of the generated report (defaults to `"en"` if omitted).
 
 - The command runs fetch -> analyze -> report sequentially for each language.
 - Output: JSON containing `work_dir`, `language_results` with pre-calculated analysis and report data, plus `charts_and_reports` with file paths.

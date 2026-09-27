@@ -296,10 +296,10 @@ def main() -> None:
                 work_dir=work_dir,
             )
 
-        # Assess reliability
+        # Assess reliability - default to English for standalone analyze
         try:
-            reliability_result = reliability.assess(metrics_result, lang="uk")
-            headline = reliability.headline(metrics_result, reliability_result, lang="uk")
+            reliability_result = reliability.assess(metrics_result, lang="en")
+            headline = reliability.headline(metrics_result, reliability_result, lang="en")
         except Exception as exc:  # noqa: BLE001
             _print_json_and_exit(
                 ok=False,
@@ -317,7 +317,7 @@ def main() -> None:
                 "metrics": metrics_result,
                 "reliability": reliability_result,
                 "headline": headline,
-                "lang": "uk",
+                "lang": "en",  # Default to English for standalone analyze
             },
             "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
             "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
@@ -442,6 +442,18 @@ def main() -> None:
                 data={},
                 warnings=["Start and end dates must be in YYYYMMDD format and valid dates."],
                 next_step="Check the date format in your spec.json window field.",
+                exit_code=2,
+            )
+
+        # Get report_lang from spec with default to English
+        report_lang = spec.get("report_lang", "en")
+        # Validate report_lang
+        if report_lang not in ["en", "uk"]:
+            _print_json_and_exit(
+                ok=False,
+                data={},
+                warnings=[f"report_lang must be 'en' or 'uk', got '{report_lang}'"],
+                next_step="Set report_lang to 'en' or 'uk' in your spec.json.",
                 exit_code=2,
             )
 
@@ -614,9 +626,9 @@ def main() -> None:
 
                 # Start date in ISO format (YYYY-MM-DD)
                 if dates:
-                    start_date = f"{dates[0][:4]}-{dates[0][4:6]}-{dates[0][6:8]}"
+                    iso_start_date = f"{dates[0][:4]}-{dates[0][4:6]}-{dates[0][6:8]}"
                 else:
-                    start_date = ""
+                    iso_start_date = ""
 
                 # Convert project views to monthly dict: { "YYYY-MM": views }
                 project_monthly = {}
@@ -634,16 +646,16 @@ def main() -> None:
 
                 # Call metrics.analyze_topic
                 try:
-                    metrics_result = metrics.analyze_topic(articles, start_date, project_monthly)
+                    metrics_result = metrics.analyze_topic(articles, iso_start_date, project_monthly)
                 except Exception as exc:  # noqa: BLE001
                     all_warnings.append(f"[{lang}] Metrics calculation failed: {exc}")
                     failed_languages.append(lang)
                     continue
 
-                # Assess reliability
+                # Assess reliability using the report language
                 try:
-                    reliability_result = reliability.assess(metrics_result, lang="uk")
-                    headline = reliability.headline(metrics_result, reliability_result, lang="uk")
+                    reliability_result = reliability.assess(metrics_result, lang=report_lang)
+                    headline = reliability.headline(metrics_result, reliability_result, lang=report_lang)
                 except Exception as exc:  # noqa: BLE001
                     all_warnings.append(f"[{lang}] Reliability assessment failed: {exc}")
                     failed_languages.append(lang)
@@ -656,7 +668,7 @@ def main() -> None:
                         "metrics": metrics_result,
                         "reliability": reliability_result,
                         "headline": headline,
-                        "lang": "uk",
+                        "lang": report_lang,  # Use the report language
                     },
                     "warnings": project_warnings,  # we only have project warnings; article warnings were fatal
                     "next_step": "Run 'wikitrends report' to generate PDF charts and reliability assessment.",
