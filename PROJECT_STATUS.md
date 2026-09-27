@@ -4,53 +4,24 @@
 
 ## Current state
 Wikipedia Interest Agent Skill is functionally working end-to-end
-(fetch → resolve → analyze → report), but has several gaps relative to `context.md`
-before it can be considered submission-ready.
+(fetch → resolve → analyze → report), but has a known regression to fix
+before continuing, plus several gaps relative to `context.md`.
 
 ## Current phase
-**Phase 0 — Freeze baseline** (completed)
-
-## Last completed
-- Implemented `resolve.py` (Wikidata sitelinks + manual override via `spec.articles`)
-- Metrics: YoY raw/norm/ex-spikes, Theil-Sen, robust spike detection
-- Reliability rubric with plain-language reasons (uk/en)
-- One-page PDF report with Cyrillic support
-- CLI JSON interface (`ok`, `data`, `warnings`, `next_step`)
-- Unit tests for metrics, reliability, resolve, api, report
-
-## Currently working on
-Nothing (awaiting Phase 0)
-
-## Next task
-Phase 1 — Documentation consistency
-
-## Validation (last known)
-- Unit tests: 41 passed
-- Live run: astronomy / uk.wikipedia → low confidence (window_short + low_daily_volume)
-- Numbers roughly consistent with pageviews.wmcloud.org
-
-## Important constraints
-- Do **not** redesign the overall architecture
-- Do **not** add external paid services or heavy dependencies
-- Keep Wikimedia Pageviews REST API as the only data source
-- Keep CLI JSON interface stable (additive changes only)
-- Agent must never recalculate metrics itself — only interpret CLI JSON
-- Prefer small, reviewable commits (one phase = one commit ideally)
-
-## Known gaps (summary)
-1. Report language still partially hardcoded to `uk`
-2. No real cross-language comparison / ranking / combined chart
-3. No `evals/` with results on a cheap model
-4. Documentation (README / SKILL.md) has some outdated claims
-5. `spike_share` definition / threshold may need final alignment
-6. No sample PDF + JSON in `examples/`
-
-## Current phase
-Phase 1 completed → next is Phase 2
+**BUGFIX — spike_share regression** (found during review, not yet fixed)
 
 ## Last completed
 - Phase 0: baseline frozen (41 tests passed)
 - Phase 1: documentation consistency (README, SKILL.md, AUDIT.md)
+- Phase 2: statistical hardening (volume window aligned to full calendar months) —
+  **introduced a regression, see below**
+- Phase 3: report_lang parameter (spec.json field, wired through run/analyze/report)
 
-## Next task
-Phase 2 — Statistical correctness (spike_share + threshold alignment + volume window)
+## Known regression (blocking, found in review)
+Phase 2 changed `spike_share`'s formula from `excess / total_views` to
+`excess / total_excess_above_baseline`, but the `> 0.3` threshold in
+`reliability.py` was not recalibrated for the new, much smaller denominator.
+Verified on a realistic noisy 2-year series with 3 genuine spikes: old formula
+gives `spike_share ≈ 0.04` (correctly not flagged), new formula gives
+`spike_share ≈ 0.38` (falsely flagged as spike-dominated). Existing unit tests
+did not catch this because they use noise-free synthetic

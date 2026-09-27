@@ -89,6 +89,26 @@ After each phase: run tests → review diff → update `PROJECT_STATUS.md` → c
 - Single-language runs still work exactly as before when field is omitted
 
 ---
+---
+
+## BUGFIX — spike_share regression (inserted after Phase 3, before Phase 4)
+**Goal:** Undo a Phase 2 regression before building anything on top of it.
+
+**Found:** Phase 2 changed `spike_share`'s denominator from total views to
+total excess-above-baseline, without recalibrating the reliability threshold.
+This falsely flags ordinary noisy data as spike-dominated.
+
+**Tasks:**
+1. Revert `spike_share` formula in `metrics.py` to `excess / total_views`.
+2. Restore the matching expected value in `test_find_spikes`.
+3. Add a regression test using realistic noisy data (not smooth synthetic data),
+   asserting `spike_share < 0.3` for a series with a few genuine spikes.
+
+**Acceptance criteria:**
+- All tests pass, including the new noisy-data test
+- `reliability.py` is untouched
+
+---
 
 ## PHASE 4 — Cross-language comparison (core missing feature)
 **Goal:** When several languages are requested, produce a real comparison.

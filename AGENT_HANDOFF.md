@@ -1,76 +1,56 @@
 # Agent Handoff
 
 ## Current task
-PHASE 3 — Report language parameter
+BUGFIX — spike_share regression (before Phase 4)
 
 ## Objective
-Stop hard-coding Ukrainian as the report language.
-Make report language configurable via `spec.json` and pass it through the pipeline.
+Revert `spike_share`'s formula in `metrics.py` to the original definition and
+add a regression test using realistic noisy data, so this class of bug can't
+silently reappear.
 
 ## Context
-- `reliability.py` already supports `lang` (`en` / `uk`) for reasons and headlines.
-- `report.py` already has label dictionaries for `en` and `uk`.
-- The problem is mainly in the orchestration path: `analyze` / `run` currently force `lang="uk"` in places.
-- SKILL.md promises that the skill should match the user's language when possible.
+- Phase 2 changed `find_spikes()` in `metrics.py`: `spike_share` went from
+  `spike_excess / total_views` to `spike_excess / total_excess_above_baseline`.
+- The `> 0.3` threshold for the `spike_dominated` flag in `reliability.py` was
+  never recalibrated for the new denominator.
+- Verified impact: a realistic 2-year series (normal day-to-day noise, 3 genuine
+  spikes) scores `spike_share ≈ 0.04` under the old formula and `≈ 0.38` under
+  the new one — the new formula falsely triggers `spike_dominated` on ordinary
+  data.
+- The existing unit tests (`test_find_spikes`, the scenario tests in
+  `test_metrics.py`) all use perfectly smooth/deterministic synthetic series, so
+  they didn't catch this: the denominator degenerates to ~0 or ~the-spike-itself
+  either way in those cases.
 
 ## Do
 
-1. Add optional field to `spec.json`:
-
-   ```json
-   {
-     "report_lang": "en"
-   }
-   ```
-
-   Supported values for now: `"en"` and `"uk"`.
-
-2. Wire `report_lang` through:
-   - `run --spec`
-   - `analyze` (when called from `run`, and ideally when called standalone if feasible)
-   - reliability assessment (`assess` / headline)
-   - PDF report generation
-
-3. Default behaviour when `report_lang` is missing:
-   - Prefer a sensible default (for example `"en"`, or infer from the first requested language if it is `uk`/`en`).
-   - Document the chosen default clearly.
-
-4. Ensure:
-   - `report_lang: "en"` → English headline, reasons, table labels
-   - `report_lang: "uk"` → Ukrainian headline, reasons, table labels
-
-5. Update `SKILL.md` to document the new `report_lang` field.
-6. Add or adjust tests if there is a clean place to lock the behaviour (even a small unit/integration style check is enough).
-7. Keep single-language behaviour backward-compatible when the field is omitted.
+1. In `metrics.py`'s `find_spikes()`, revert `spike_share` to:
+```python
+   spike_excess = sum(daily[i] - baseline[i] for i in range(n) if flags[i])
+   total_views = sum(daily)
+   spike_share = spike_excess / total_views if total_views != 0 else 0.0
+```
+2. Update the docstring (currently says "fraction of excess views above baseline
+   that come from spike days" — revert to "fraction of total views that come
+   from spike days (above baseline)").
+3. In `tests/test_metrics.py`'s `test_find_spikes`, restore the original expected
+   value and comment (`spike_share ≈ 99.0/129.0 ≈ 0.767` for that fixture, not
+   `1.0`).
+4. Add ONE new test in `tests/test_metrics.py` using a series with realistic
+   Gaussian day-to-day noise (e.g. `random.gauss(30, sqrt(30))` per day, seeded)
+   plus 2-3 genuine spikes added on top, over ~2 years. Assert `spike_share`
+   stays comfortably under 0.3 in that case. This is the exact scenario Phase 2
+   broke, and it must not regress silently again.
+5. Do not touch `reliability.py`'s threshold — the original formula was already
+   calibrated against it.
 
 ## Do not
 
-- Implement cross-language comparison (Phase 4)
-- Redesign the whole CLI
-- Add full i18n framework or many new languages
-- Change metrics formulas
-- Break existing JSON schema in a non-additive way
+- Change any other metric (`yoy_*`, `trend_pct_per_year`, `volume`)
+- Touch `reliability.py`
+- Start Phase 4 before this is committed and green
 
 ## Acceptance criteria
 
-- `spec.json` can contain `"report_lang": "en"` or `"report_lang": "uk"`.
-- English request path produces English report text.
-- Ukrainian path still works.
-- When `report_lang` is omitted, behaviour is defined and documented.
-- Existing tests still pass.
-- `SKILL.md` mentions the new field.
-
-## Files likely involved
-
-- `src/wikitrends/cli.py`
-- `src/wikitrends/reliability.py` (already mostly ready)
-- `src/wikitrends/report.py`
-- `wikipedia-interest/SKILL.md`
-- possibly a small test file
-
-## After finishing
-
-1. Show the key diffs (especially where `lang="uk"` was previously hardcoded).
-2. Show how `report_lang` flows from `spec` → `analyze` / `report`.
-3. Run `uv run pytest -q` and show the summary.
-4. Stop. Do not start Phase 4.
+- `find_spikes()` uses the original `excess / total_views` formula
+- `test_find_spikes`
