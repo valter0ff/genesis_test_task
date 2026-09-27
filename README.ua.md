@@ -9,12 +9,9 @@
 
 Навичка відповідає формату Agent Skills: каталог з `SKILL.md` та кодом, який
 сумісний AI-агент може виявити й використовувати самостійно. Ми будували й
-перевіряли її саме на **Claude Code**: покладіть або зробіть symlink каталогу
-`wikipedia-interest/` у `.claude/skills/wikipedia-interest/` в тій папці,
-звідки ви запускаєте Claude Code — навичка підхопиться автоматично, без
-додаткового налаштування.
-
-Bash команда для створення symlink:
+перевіряли її саме на **Claude Code**. Зробіть symlink каталогу цієї навички
+у папку skills вашого проєкту, і Claude Code підхопить її автоматично — без
+додаткового налаштування:
 ```bash
 ln -s /path/to/wikipedia-interest /your/project/.claude/skills/wikipedia-interest
 ```

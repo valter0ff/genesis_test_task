@@ -8,12 +8,9 @@ can be trusted — delivered as a one-page PDF report.
 
 This skill follows the Agent Skills format: a directory containing `SKILL.md`
 plus supporting code, which a compatible AI agent can discover and use on its
-own. We built and tested it specifically with **Claude Code**: place or symlink
-the `wikipedia-interest/` directory under `.claude/skills/wikipedia-interest/` in
-the folder you run Claude Code from, and it is picked up automatically — no
-further configuration needed.
-
-Bash command for symlinking
+own. We built and tested it specifically with **Claude Code**. Symlink this
+skill's directory into your project's skills folder, and Claude Code picks it
+up automatically — no further configuration needed:
 ```bash
 ln -s /path/to/wikipedia-interest /your/project/.claude/skills/wikipedia-interest
 ```
